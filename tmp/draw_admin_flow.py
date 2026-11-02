@@ -1,0 +1,60 @@
+from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
+im=Image.new('RGB',(2100,2220),'white');d=ImageDraw.Draw(im)
+def f(n,b=False):return ImageFont.truetype('C:/Windows/Fonts/malgun'+('bd' if b else '')+'.ttf',n)
+def label(x,y,s,n=26,b=False):
+ for i,t in enumerate(s.split('\n')):d.text((x-d.textlength(t,font=f(n,b))/2,y+i*(n+12)),t,font=f(n,b),fill='black')
+def box(x,y,s,w=640,h=100,b=False):
+ d.rectangle((x-w/2,y,x+w/2,y+h),outline='black',width=3)
+ label(x,y+(h-len(s.split('\n'))*38)/2,s,26,b)
+def arrow(points):
+ d.line(points,fill='black',width=3)
+ (x0,y0),(x,y)=points[-2:]
+ if y>y0:p=[(x,y),(x-9,y-15),(x+9,y-15)]
+ elif x>x0:p=[(x,y),(x-15,y-9),(x-15,y+9)]
+ elif x<x0:p=[(x,y),(x+15,y-9),(x+15,y+9)]
+ else:p=[(x,y),(x-9,y+15),(x+9,y+15)]
+ d.polygon(p,fill='black')
+label(1050,25,'원보틀 관리자 플로우차트',42,True)
+label(1050,90,'기존 페이지 재사용 · 인증 후 등록 / 수정 버튼 표시 · 별도 디자인 없음',27)
+box(1050,160,'관리자 인증 경로 접속 · 키 입력')
+arrow([(1050,260),(1050,300)])
+box(1050,300,'서버에서 관리자 키 검증')
+arrow([(1370,350),(1680,350)])
+box(1850,300,'인증 실패\n재입력 안내 · 시도 제한',w=420)
+label(1510,302,'실패',24)
+arrow([(1050,400),(1050,450)]);label(1130,407,'성공',24)
+box(1050,450,'관리자 세션 발급\n기존 페이지에 관리 버튼 표시',b=True)
+arrow([(1050,550),(1050,610)])
+d.line((380,610,1720,610),fill='black',width=3)
+for x,t in [(380,'전체 메뉴 페이지\n분류 등록 / 수정'),(1050,'전체 메뉴 페이지\n메뉴 등록 / 수정'),(1720,'공지 목록에서 등록\n공지 상세에서 수정')]:
+ arrow([(x,610),(x,650)]);box(x,650,t,w=570)
+ arrow([(x,750),(x,800)])
+d.line((380,800,1720,800),fill='black',width=3)
+arrow([(1050,800),(1050,850)])
+box(1050,850,'해당 페이지에서 입력 폼 표시\n수정 시 기존 내용 채우기',w=760)
+arrow([(1430,900),(1690,900)])
+box(1870,850,'취소\n원래 화면 복귀',w=360);label(1550,850,'취소',24)
+arrow([(1050,950),(1050,1000)])
+box(1050,1000,'등록 또는 수정 내용 제출')
+arrow([(1050,1100),(1050,1150)])
+box(1050,1150,'서버에서 세션 · CSRF · 입력값 확인',w=760)
+arrow([(670,1200),(430,1200)])
+box(240,1150,'세션 만료\n변경 거절 · 재인증',w=400)
+arrow([(1430,1200),(1690,1200)])
+box(1870,1150,'검증 실패\n폼에서 수정 안내',w=360)
+label(1540,1150,'입력 오류',23)
+arrow([(1050,1250),(1050,1310)]);label(1130,1260,'정상',24)
+box(1050,1310,'DB에 등록 / 수정 반영')
+arrow([(1370,1360),(1690,1360)])
+box(1870,1310,'저장 실패\n입력 유지 · 재시도',w=360)
+arrow([(1050,1410),(1050,1470)]);label(1130,1420,'성공',24)
+box(1050,1470,'갱신된 목록 또는 상세로 이동\n저장 결과 확인',w=760)
+arrow([(1050,1570),(1050,1630)])
+box(1050,1630,'다른 등록 / 수정 작업 계속\n또는 로그아웃 선택',w=760)
+arrow([(1050,1730),(1050,1790)])
+box(1050,1790,'로그아웃 → 세션 종료\n방문자 화면으로 복귀',w=760)
+label(1050,1960,'관리자: 비공개 메뉴 · 공지도 조회 / 수정 가능',28,True)
+label(1050,2020,'방문자: 공개 데이터만 조회 · 등록 / 수정 요청 권한 없음',27)
+label(1050,2080,'모든 변경 요청은 서버에서 인증 확인 · 삭제 기능은 이번 범위에서 제외',26)
+p=Path('C:/School/coffee_site/output/design/admin_flow.png');p.parent.mkdir(parents=True,exist_ok=True);im.save(p)

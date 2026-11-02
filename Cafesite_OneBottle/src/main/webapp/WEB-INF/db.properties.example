@@ -1,0 +1,3 @@
+url=jdbc:mysql://127.0.0.1:3306/cafe_onebottle?useUnicode=true&characterEncoding=UTF-8&connectionTimeZone=Asia/Seoul&connectTimeout=3000&socketTimeout=5000
+user=YOUR_USER
+password=YOUR_PASSWORD

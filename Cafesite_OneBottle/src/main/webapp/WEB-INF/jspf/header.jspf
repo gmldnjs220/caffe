@@ -1,0 +1,47 @@
+<%@ page pageEncoding="UTF-8" %>
+
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="description" content="원보틀 카페 소개, 메뉴 및 방문 안내">
+        <title><%=esc(title)%> | ONE BOTTLE</title>
+        <link rel="stylesheet" href="<%=ctx%>/assets/site.css">
+        <script defer src="<%=ctx%>/assets/site.js"></script>
+    </head>
+    <body><a class="skip" href="#main">본문 바로가기</a>
+        <header class="header">
+            <div class="wrap nav"><a class="brand" href="<%=ctx%>/index.jsp" aria-label="원보틀 홈"><span class="brand-mark"
+                        aria-hidden="true">◯</span><span>원보틀<small>ONE BOTTLE</small></span></a>
+                <nav aria-label="주요 메뉴">
+
+                    <%
+                        String[][] links={
+                            {
+                                "home","홈","index.jsp"
+                            }
+                            ,{
+                                "about","카페 소개","about.jsp"
+                            }
+                            ,{
+                                "menu","메뉴","menu.jsp"
+                            }
+                            ,{
+                                "notice","공지사항","notices.jsp"
+                            }
+                            ,{
+                                "directions","오시는 길","directions.jsp"
+                            }
+                        }
+                        ;
+                        for(String[] link:links) {
+                    %>
+
+                    <a href="<%=ctx%>/<%=link[2]%>"
+                        <%=active.equals(link[0])?"aria-current=\"page\"":""%>><%=link[1]%></a>
+                    <% } %>
+
+                </nav>
+            </div>
+        </header>

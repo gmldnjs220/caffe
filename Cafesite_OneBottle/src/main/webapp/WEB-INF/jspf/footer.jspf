@@ -1,0 +1,12 @@
+<%@ page pageEncoding="UTF-8" %>
+
+<footer class="footer">
+    <div class="wrap footer-grid"><a class="brand" href="<%=ctx%>/index.jsp">원보틀 <small>ONE BOTTLE</small></a>
+        <div>
+            <p><%=esc(address)%></p>
+            <p class="muted">개발용 프로토타입 · 텍스트 로고, 이미지와 샘플 메뉴는 실제 자료로 교체 예정입니다.</p>
+        </div><span class="footer-note">COFFEE &amp; DESSERT</span>
+    </div>
+</footer>
+</body>
+</html>

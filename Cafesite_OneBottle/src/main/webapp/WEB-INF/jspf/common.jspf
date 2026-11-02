@@ -1,0 +1,56 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="java.sql.*,java.util.*,java.io.*,java.math.BigDecimal,java.text.NumberFormat" %>
+
+<%!
+    String esc(Object v) {
+        return v == null ? "" : v.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;").replace("'","&#39;");
+    }
+    Properties config(jakarta.servlet.ServletContext ctx, String file) throws Exception {
+        Properties p = new Properties();
+        try(InputStream in=ctx.getResourceAsStream("/WEB-INF/"+file)) {
+            if(in!=null) p.load(new InputStreamReader(in,java.nio.charset.StandardCharsets.UTF_8));
+        }
+        return p;
+    }
+    Connection connect(jakarta.servlet.ServletContext ctx) throws Exception {
+        Properties p=config(ctx,"db.properties");
+        String url=System.getenv("ONEBOTTLE_DB_URL"), user=System.getenv("ONEBOTTLE_DB_USER"), pass=System.getenv("ONEBOTTLE_DB_PASSWORD");
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(url!=null?url:p.getProperty("url"),user!=null?user:p.getProperty("user"),pass!=null?pass:p.getProperty("password"));
+    }
+    List<Map<String,Object>> query(jakarta.servlet.ServletContext ctx,String sql,Object... args) throws Exception {
+        List<Map<String,Object>> rows=new ArrayList<>();
+        try(Connection c=connect(ctx); PreparedStatement ps=c.prepareStatement(sql)) {
+            for(int i=0;i<args.length;i++) ps.setObject(i+1,args[i]);
+            try(ResultSet rs=ps.executeQuery()) {
+                while(rs.next()) {
+                    Map<String,Object> row=new LinkedHashMap<>();
+                    for(int i=1;i<=rs.getMetaData().getColumnCount();i++) row.put(rs.getMetaData().getColumnLabel(i).toLowerCase(Locale.ROOT),rs.getObject(i));
+                    rows.add(row);
+                }
+            }
+        }
+        return rows;
+    }
+    long positiveId(String value) {
+        try {
+            long n=Long.parseLong(value);
+            return n>0?n:-1;
+        }
+        catch(Exception e) {
+            return -1;
+        }
+    }
+    String image(Object value,String ctx) {
+        String p=value==null?"":value.toString();
+        // Only same-application asset paths are accepted; no external tracking or script URLs.
+        if(!p.matches("assets/[a-zA-Z0-9_./-]+") || p.contains("..")) p="assets/menu-placeholder.svg";
+        return ctx+"/"+p;
+    }
+%>
+
+<%
+    request.setCharacterEncoding("UTF-8");
+    String ctx=request.getContextPath();
+    Properties site=config(application,"site.properties");
+    String title="원보틀", active="", intro=site.getProperty("introduction"), address=site.getProperty("address");
+%>

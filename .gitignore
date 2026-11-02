@@ -1,0 +1,4 @@
+/.metadata/
+/.local/
+**/WEB-INF/db.properties
+**/build/classes/
