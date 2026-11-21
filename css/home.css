@@ -70,8 +70,13 @@
     -webkit-backdrop-filter var(--bg-speed) ease;
 }
 
-.sidebar:hover ~ .sidebar-bg,
-.sidebar:focus-within ~ .sidebar-bg {
+.sidebar:hover ~ .sidebar-bg {
+  width: calc(var(--sidebar-w) + var(--feather));
+}
+
+/* 키보드(Tab)로 메뉴에 들어왔을 때만 펼침.
+   마우스로 로고를 눌렀을 때 남는 포커스로는 펼쳐지지 않게 :focus-within 대신 :focus-visible 사용 */
+.sidebar:has(:focus-visible) ~ .sidebar-bg {
   width: calc(var(--sidebar-w) + var(--feather));
 }
 
@@ -427,8 +432,11 @@
     transition: opacity 0.6s ease;
   }
 
-  .sidebar:hover ~ .sidebar-bg,
-  .sidebar:focus-within ~ .sidebar-bg {
+  .sidebar:hover ~ .sidebar-bg {
+    width: 100%;
+  }
+
+  .sidebar:has(:focus-visible) ~ .sidebar-bg {
     width: 100%;
   }
 

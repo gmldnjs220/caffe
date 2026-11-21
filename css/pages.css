@@ -123,9 +123,56 @@
   padding-left: 20px;
 }
 
+/* ---------- 오시는 길: 요일별 영업시간 (공지사항과 같은 내용) ---------- */
+
+.visit-hours {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.visit-hours li {
+  display: grid;
+  grid-template-columns: 7.5rem auto;
+  justify-content: start;
+}
+
+.visit-hours span {
+  color: rgba(246, 241, 234, 0.6);
+}
+
+.visit-hours time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 오시는 길: 약도 ---------- */
+
+.visit-map {
+  max-width: 640px;          /* 약도 크기. 키우거나 줄이려면 이 값을 바꾸면 됨 */
+  margin: 40px auto 0;      /* 가운데 정렬 */
+}
+
+.visit-map img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 가장자리를 부드럽게 흐려서 배경에 자연스럽게 녹아들게 */
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 62%, transparent 100%);
+}
+
+/* 약도 바로 아래 '네이버 지도에서 보기' 버튼 */
+.visit-map + .info-links {
+  justify-content: center;   /* 약도와 같이 가운데 */
+  margin-top: 4px;
+}
+
 .visit-list > div {
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr);
+  align-items: center;   /* 왼쪽 제목(주소, 전화, 영업시간)을 내용의 위아래 가운데에 */
   gap: 12px;
   padding: 16px 0;
 }
