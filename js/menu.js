@@ -1,5 +1,4 @@
-// 메뉴 페이지: 카테고리 필터 + 메뉴 상세 보기
-import { GROUPS, CATEGORIES } from './menu-data.js';
+// 메뉴 페이지: 카테고리 필터 + 메뉴 상세 보기 (menu-data.js 다음에 실행)
 
 const filterEl = document.querySelector('.js-filter');
 const boardEl = document.querySelector('.js-board');
@@ -112,7 +111,7 @@ function applyFilter(id) {
 
   const hash = filter === 'all' ? '' : `#${filter}`;
   if (location.hash !== hash) {
-    history.replaceState(null, '', hash || location.pathname + location.search);
+    history.replaceState(null, '', hash || location.href.split('#')[0]);
   }
 }
 

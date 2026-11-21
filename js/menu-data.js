@@ -5,12 +5,12 @@
 // - options: 추가 옵션 [{ label, price }]
 // - variants: 같은 메뉴에 가격이 여러 개일 때 [{ label, price }]
 
-export const GROUPS = [
+const GROUPS = [
   { id: 'drinks', en: 'DRINKS', ko: '음료' },
   { id: 'dessert', en: 'DESSERT', ko: '디저트' },
 ];
 
-export const CATEGORIES = [
+const CATEGORIES = [
   {
     id: 'coffee', group: 'drinks', en: 'COFFEE', ko: '커피', temp: 'both', caffeine: true,
     items: [

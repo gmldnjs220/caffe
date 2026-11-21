@@ -1,53 +1,12 @@
 /* ==========================================================================
-   서브 페이지 공통 + 메뉴 페이지
+   메뉴 페이지
    ========================================================================== */
 
 :root {
   --surface: #1d1915;
-  --line: rgba(246, 241, 234, 0.14);
   --line-strong: rgba(246, 241, 234, 0.32);
   --hot: #f08a5d;
   --ice: #7cc4e8;
-}
-
-/* 서브 페이지는 헤더 배경을 단색으로 */
-.page-sub .site-header {
-  background: rgba(20, 17, 14, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-  text-shadow: none;
-}
-
-.menu-page {
-  padding: calc(var(--header-h) + clamp(40px, 7vw, 88px)) var(--gutter) 120px;
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-/* ---------- 페이지 제목 ---------- */
-
-.page-head__eyebrow {
-  margin: 0 0 12px;
-  font-family: var(--font-en);
-  font-size: 13px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--amber);
-}
-
-.page-head__title {
-  margin: 0;
-  font-size: clamp(34px, 5vw, 56px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.page-head__desc {
-  margin: 14px 0 0;
-  font-size: 14px;
-  color: var(--paper-dim);
 }
 
 /* ---------- 카테고리 필터 ---------- */

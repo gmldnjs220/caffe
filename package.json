@@ -1,15 +1,15 @@
 {
-  "name": " ",
+  "name": "onebottle-cafe",
   "version": "0.0.1",
-  "description": "",
+  "description": "안양 석수동 카페 원보틀 웹사이트",
   "private": true,
   "keywords": [
-    ""
+    "cafe",
+    "onebottle"
   ],
-  "license": "",
+  "license": "UNLICENSED",
   "author": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --open --config webpack.config.dev.js",
     "build": "webpack --config webpack.config.prod.js"
   },
