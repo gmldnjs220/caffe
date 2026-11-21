@@ -147,9 +147,15 @@ button:focus-visible {
 }
 
 .content-page {
+  --page-w: 960px;   /* 가운데 정렬 페이지(소개, 공지, 메뉴)의 내용 폭 — 사진과 분리선 길이도 이 값 */
   max-width: 1280px;
   margin: 0 auto;
   padding: calc(var(--header-h) + clamp(40px, 7vw, 88px)) var(--gutter) 120px;
+}
+
+/* 내용 덩어리를 가운데에 두고, 안쪽 글은 왼쪽 정렬 유지 */
+.content-page--center {
+  max-width: calc(var(--page-w) + var(--gutter) * 2);
 }
 
 .page-head__eyebrow {
@@ -208,4 +214,21 @@ button:focus-visible {
     padding: 6px 0;
     font-size: clamp(12px, 3.5vw, 14px);
   }
+}
+
+/* --------------------------------------------------------------------------
+   메인 화면 안에서 열릴 때 (index.html의 메뉴를 눌렀을 때, iframe 안)
+   — 위쪽 메뉴를 숨기고 배경을 투명하게 해서 뒤의 블러가 보이게 함
+   -------------------------------------------------------------------------- */
+
+html.is-embed {
+  --header-h: 0px;
+}
+
+html.is-embed body {
+  background: transparent;
+}
+
+html.is-embed .site-header {
+  display: none;
 }

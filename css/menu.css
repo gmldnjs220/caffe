@@ -9,18 +9,21 @@
   --ice: #7cc4e8;
 }
 
+/* ---------- 페이지 폭: 내용을 가운데 쪽으로 모음 ---------- */
+
+.content-page--menu {
+  --menu-pad: clamp(24px, 7vw, 120px);   /* 좌우 여백. 값을 키우면 내용 폭이 좁아지고 더 안쪽으로 들어감 */
+  max-width: calc(1000px + var(--menu-pad) * 2);
+  padding-left: var(--menu-pad);
+  padding-right: var(--menu-pad);
+}
+
 /* ---------- 카테고리 필터 ---------- */
 
 .filter {
-  position: sticky;
-  top: var(--header-h);
-  z-index: 5;
-  margin: 36px calc(var(--gutter) * -1) 0;
-  padding: 14px var(--gutter);
-  background: rgba(20, 17, 14, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
+  margin: 36px 0 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);   /* ABOUT 분리선과 같은 양식, 길이는 메뉴판 폭에 맞춤 */
 }
 
 .filter__scroll {
@@ -33,15 +36,6 @@
 
 .filter__scroll::-webkit-scrollbar {
   display: none;
-}
-
-.filter__label {
-  flex-shrink: 0;
-  margin: 0 4px 0 14px;
-  font-family: var(--font-en);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: rgba(246, 241, 234, 0.45);
 }
 
 .chip {
@@ -116,7 +110,7 @@
 }
 
 .menu-group__cols {
-  columns: 3 300px;
+  columns: 3 260px;
   column-gap: clamp(32px, 5vw, 64px);
 }
 
@@ -405,10 +399,6 @@
 /* ---------- 모바일: 바텀 시트 ---------- */
 
 @media (max-width: 640px) {
-  .filter__label {
-    margin-left: 10px;
-  }
-
   .chip {
     height: 36px;
     padding: 0 14px;

@@ -25,24 +25,129 @@
   scrollbar-width: none;
 }
 
-/* 반투명 블러 배경 — 평소엔 왼쪽 밖에 숨어 있다가,
-   마우스를 올리면 왼쪽에서 오른쪽으로 펼쳐짐 (글자는 그대로) */
-.sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+/* --------------------------------------------------------------------------
+   블러 배경 (.sidebar-bg)
+   평소엔 왼쪽 밖에 숨어 있다가 사이드바에 마우스를 올리면 사이드바만큼 펼쳐지고,
+   메뉴를 누르면(.is-page-open) 화면 오른쪽 끝까지 채우면서 더 진해짐
+   -------------------------------------------------------------------------- */
+
+.sidebar-bg {
+  position: fixed;
+  z-index: 9;               /* 사이드바(10)보다 아래, 가운데 ONE BOTTLE(.hero)보다 위 */
+  --feather: 110px;         /* 오른쪽 경계가 흐려지는 폭. 키우면 더 넓게 번지고, 0이면 딱 떨어지는 경계 */
+  --bg-speed: 0.65s;        /* 호버로 펼쳐질 때와 메뉴 클릭으로 채워질 때 같은 속도. 줄이면 빨라짐 */
+  --bg-ease: cubic-bezier(0.45, 0, 0.25, 1);
+  inset: 0 auto 0 0;
+  width: 0;                 /* 평소엔 폭 0으로 숨김 */
   background: rgba(20, 17, 14, 0.38);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-right: 1px solid rgba(246, 241, 234, 0.12);
-  transform: translateX(-100%);
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* 오른쪽 끝 --feather 구간을 부드럽게 투명하게 → 경계가 모호해짐. 폭이 늘어나도 흐린 끝이 같이 따라감 */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--feather)),
+    rgba(0, 0, 0, 0.957) calc(100% - var(--feather) * 0.875),
+    rgba(0, 0, 0, 0.844) calc(100% - var(--feather) * 0.750),
+    rgba(0, 0, 0, 0.684) calc(100% - var(--feather) * 0.625),
+    rgba(0, 0, 0, 0.500) calc(100% - var(--feather) * 0.500),
+    rgba(0, 0, 0, 0.316) calc(100% - var(--feather) * 0.375),
+    rgba(0, 0, 0, 0.156) calc(100% - var(--feather) * 0.250),
+    rgba(0, 0, 0, 0.043) calc(100% - var(--feather) * 0.125),
+    transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--feather)),
+    rgba(0, 0, 0, 0.957) calc(100% - var(--feather) * 0.875),
+    rgba(0, 0, 0, 0.844) calc(100% - var(--feather) * 0.750),
+    rgba(0, 0, 0, 0.684) calc(100% - var(--feather) * 0.625),
+    rgba(0, 0, 0, 0.500) calc(100% - var(--feather) * 0.500),
+    rgba(0, 0, 0, 0.316) calc(100% - var(--feather) * 0.375),
+    rgba(0, 0, 0, 0.156) calc(100% - var(--feather) * 0.250),
+    rgba(0, 0, 0, 0.043) calc(100% - var(--feather) * 0.125),
+    transparent);
+  pointer-events: none;
+  /* 호버도, 메뉴 클릭도 '폭'만 늘어나는 같은 방식이라 속도와 느낌이 똑같음 */
+  transition:
+    width var(--bg-speed) var(--bg-ease),
+    background-color var(--bg-speed) ease,
+    backdrop-filter var(--bg-speed) ease,
+    -webkit-backdrop-filter var(--bg-speed) ease;
 }
 
-.sidebar:hover::before,
-.sidebar:focus-within::before {
-  transform: translateX(0);
+.sidebar:hover ~ .sidebar-bg,
+.sidebar:focus-within ~ .sidebar-bg {
+  width: calc(var(--sidebar-w) + var(--feather));
+}
+
+/* 메뉴를 눌렀을 때: 흐린 경계를 유지한 채 오른쪽 끝까지 쭉 채우고 더 진하게 (흐린 부분은 화면 밖으로 나감)
+   (.sidebar ~ 를 붙인 건 위의 호버 규칙보다 우선하게 하려는 것) */
+.is-page-open .sidebar ~ .sidebar-bg {
+  width: calc(100% + var(--feather));
+  background: rgba(14, 12, 10, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* 현재 열린 페이지 메뉴 표시 */
+.sidebar__nav a[aria-current="page"] {
+  color: var(--amber);
+}
+
+.sidebar__accent a[aria-current="page"] {
+  color: var(--paper);
+}
+
+/* --------------------------------------------------------------------------
+   페이지 내용 (.page-layer) — 블러가 다 펼쳐진 뒤 페이드 인
+   -------------------------------------------------------------------------- */
+
+.page-layer {
+  position: fixed;
+  z-index: 11;
+  inset: 0 0 0 var(--sidebar-w);
+  opacity: 0;
+  visibility: hidden;
+  /* 닫을 때: 내용이 먼저 사라짐 */
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.is-page-open .page-layer {
+  opacity: 1;
+  visibility: visible;
+  /* 열 때: 블러가 펼쳐지는 동안 기다렸다가(0.45초) 페이드 인 */
+  transition: opacity 0.6s ease 0.45s, visibility 0s;
+}
+
+.page-layer__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  transition: opacity 0.25s ease;
+}
+
+/* 다른 메뉴로 바꿀 때 잠깐 흐려졌다가 새 페이지가 페이드 인 */
+.page-layer.is-swapping .page-layer__frame {
+  opacity: 0;
+}
+
+.page-layer__close {
+  position: absolute;
+  z-index: 1;
+  top: 18px;
+  right: 22px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper-dim);
+  cursor: pointer;
+}
+
+.page-layer__close:hover {
+  background: rgba(246, 241, 234, 0.08);
+  color: var(--paper);
 }
 
 .sidebar::-webkit-scrollbar {
@@ -218,10 +323,6 @@
   pointer-events: none;
 }
 
-.hero__copy a {
-  pointer-events: auto;
-}
-
 .hero__title {
   margin: 0;
   font-family: var(--font-en);
@@ -234,37 +335,16 @@
   white-space: nowrap;
 }
 
+/* 설명 문구는 따로 띄워서, ONE BOTTLE 글자만 정확히 화면 정중앙에 오게 함 */
 .hero__desc {
-  margin: 18px 0 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% + clamp(28px, 3.2vw, 46px) / 2 + 18px);  /* 정중앙 + 글자 크기의 절반 + 간격 18px. 글자 크기를 바꾸면 여기 clamp도 같이 */
+  margin: 0;
   font-size: 14px;
   letter-spacing: 0.1em;
   color: var(--paper-dim);
-}
-
-.hero__button {
-  display: inline-grid;
-  place-items: center;
-  min-width: 240px;
-  height: 46px;
-  margin-top: 56px;
-  padding: 0 28px;
-  border: 1px solid rgba(246, 241, 234, 0.85);
-  background: rgba(246, 241, 234, 0.16);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  font-family: var(--font-en);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-shadow: none;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-}
-
-.hero__button:hover,
-.hero__button:focus-visible {
-  background: var(--paper);
-  border-color: var(--paper);
-  color: var(--ink);
 }
 
 /* --------------------------------------------------------------------------
@@ -337,9 +417,33 @@
     max-height: 100dvh;
   }
 
-  /* 휴대폰은 마우스 호버가 없으니 펼치는 블러는 끄고 위쪽 바 배경을 그대로 씀 */
-  .sidebar::before {
-    display: none;
+  /* 휴대폰: 호버가 없으니 평소엔 숨기고, 메뉴를 누르면 화면 전체에 서서히 나타남 */
+  .sidebar-bg {
+    width: 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .sidebar:hover ~ .sidebar-bg,
+  .sidebar:focus-within ~ .sidebar-bg {
+    width: 100%;
+  }
+
+  .is-page-open .sidebar-bg {
+    opacity: 1;
+  }
+
+  /* 휴대폰: 위쪽 로고 바 아래 전체에 페이지 내용 */
+  .page-layer {
+    inset: var(--bar-h, 72px) 0 0 0;
+  }
+
+  .page-layer__close {
+    top: 8px;
+    right: 8px;
   }
 
   .sidebar__logo {
@@ -410,10 +514,6 @@
     padding: 5px 0;
   }
 
-  .hero__button {
-    min-width: 200px;
-    margin-top: 40px;
-  }
 
   .hero__controls {
     right: 8px;
@@ -443,13 +543,12 @@
     height: 18px;
   }
 
-  .hero__button {
-    margin-top: 28px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar::before {
+  .sidebar-bg,
+  .page-layer,
+  .is-page-open .page-layer {
     transition: none;
   }
 

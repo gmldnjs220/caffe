@@ -36,7 +36,6 @@ function chip(id, label, count) {
 
 filterEl.append(chip('all', '전체'));
 GROUPS.forEach((group) => {
-  filterEl.append(el('span', { class: 'filter__label', text: group.en, 'aria-hidden': 'true' }));
   CATEGORIES.filter((c) => c.group === group.id).forEach((c) => {
     filterEl.append(chip(c.id, c.ko, c.items.length));
   });

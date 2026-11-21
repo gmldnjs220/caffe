@@ -29,6 +29,16 @@
 
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#14110e">
+  <!-- 메인 화면 안(iframe)에서 열렸는지 확인해서 위쪽 메뉴를 숨김 -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
+    }
+  </script>
 </head>
 <body class="page-sub">
   <header class="site-header">
@@ -46,12 +56,58 @@
     </nav>
   </header>
 
-  <main class="content-page">
+  <main class="content-page content-page--center">
     <header class="page-head">
       <p class="page-head__eyebrow">About</p>
       <h1 class="page-head__title">안양예술공원 카페, 원보틀</h1>
       <p class="page-head__desc">신선한 재료로 커피와 디저트를 준비합니다.</p>
     </header>
+
+    <!-- 소개글 -->
+    <section class="about-intro" aria-label="원보틀 소개">
+      <p class="about-intro__since" aria-hidden="true">
+        <span class="about-intro__num">8</span>
+        <span class="about-intro__unit">Years<br>in Anyang</span>
+      </p>
+      <div class="about-intro__text">
+        <p class="about-intro__lead">안양예술공원 카페 원보틀입니다.</p>
+        <p><em>8년간</em> 안양 유원지에서 운영하고 있으며<br>
+          항상 좋은 청결 상태 유지, 신선한 재료로 손님들에게<br>
+          좋은 커피와 디저트를 제공하고 있습니다.</p>
+        <p class="about-intro__thanks">찾아주셔서 감사합니다 🙂</p>
+      </div>
+    </section>
+
+    <!-- 편의시설 및 서비스 -->
+    <section class="amenities" aria-labelledby="amenity-title">
+      <h2 id="amenity-title" class="visually-hidden">매장 정보</h2>
+
+      <div class="amenities__group">
+        <h3 class="amenities__title">편의시설 및 서비스</h3>
+        <ul class="amenities__list">
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M9.5 15l2 2 3.5-3.5"/></svg><span class="amenity__label">예약</span></li>
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2.2"/><circle cx="5.5" cy="10" r="1.8"/><circle cx="18.5" cy="10" r="1.8"/><path d="M8.5 19v-3a3.5 3.5 0 0 1 7 0v3M2.5 19v-2a3 3 0 0 1 4.5-2.6M21.5 19v-2a3 3 0 0 0-4.5-2.6"/></svg><span class="amenity__label">단체 이용 가능</span></li>
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="0.8" fill="currentColor"/></svg><span class="amenity__label">무선 인터넷</span></li>
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="4.5" r="1.7"/><circle cx="16.5" cy="4.5" r="1.7"/><path d="M5.5 21v-6H4.5l1.5-6.5h3L10.5 15h-1v6M14.5 21v-9M18.5 21v-9M14.5 12V8.5h4V12M12 3v18"/></svg><span class="amenity__label">남/녀 화장실 구분</span></li>
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="amenity__label">포장</span></li>
+        </ul>
+      </div>
+
+      <div class="amenities__group">
+        <h3 class="amenities__title">반려동물 동반</h3>
+        <ul class="amenities__list">
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="10" r="1.8"/><circle cx="9.5" cy="5.8" r="1.8"/><circle cx="14.5" cy="5.8" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M12 11.5c-2.6 0-5 3.6-5 6a2.3 2.3 0 0 0 2.3 2.3c1.1 0 1.7-.6 2.7-.6s1.6.6 2.7.6A2.3 2.3 0 0 0 17 17.5c0-2.4-2.4-6-5-6z"/></svg><span class="amenity__label">반려동물 동반 가능</span></li>
+        </ul>
+      </div>
+
+      <div class="amenities__group">
+        <h3 class="amenities__title">주차</h3>
+        <ul class="amenities__list">
+          <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 17V7.5h3a2.75 2.75 0 0 1 0 5.5h-3"/></svg><span class="amenity__label">주차 가능 <span class="amenity__badge">무료</span></span></li>
+        </ul>
+      </div>
+    </section>
+
     <section class="info-section" aria-labelledby="space-title">
       <h2 id="space-title">매장 둘러보기</h2>
       <div class="space-photos">

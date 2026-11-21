@@ -2,12 +2,14 @@
   margin-top: 36px;
 }
 
+
 .info-section h2 {
   margin: 0 0 16px;
   font-size: 20px;
 }
 
 .space-photos {
+  max-width: var(--page-w);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 12px;
@@ -55,9 +57,46 @@
 }
 
 .notices summary {
-  padding: 16px 0;
+  position: relative;
+  padding: 16px 40px 16px 0;
   line-height: 1.65;
   cursor: pointer;
+  list-style: none;          /* 기본 ▶ 삼각형 숨김 */
+  transition: color 0.25s ease;
+}
+
+.notices summary::-webkit-details-marker {
+  display: none;
+}
+
+.notices summary:hover {
+  color: var(--amber);
+}
+
+/* 오른쪽 화살표: 펼치면 위로 돌아감 */
+.notices summary::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), margin-top 0.35s ease;
+  opacity: 0.7;
+}
+
+.notices details[open]:not(.is-closing) summary::after {
+  transform: rotate(-135deg);
+  margin-top: -2px;
+}
+
+/* 애니메이션 중에는 내용이 높이 밖으로 삐져나오지 않게 */
+.notice-body {
+  overflow: hidden;
 }
 
 .notices summary:focus-visible {
@@ -100,4 +139,179 @@
   color: var(--amber);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   소개 페이지 — 소개글
+   -------------------------------------------------------------------------- */
+
+.about-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(24px, 5vw, 64px);
+  max-width: var(--page-w);
+  margin-top: clamp(36px, 5vw, 56px);
+  padding: clamp(28px, 4vw, 44px) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+/* 왼쪽 큰 숫자 8 */
+.about-intro__since {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-en);
+  color: var(--amber);
+}
+
+.about-intro__num {
+  font-size: clamp(64px, 8vw, 104px);
+  font-weight: 500;
+  line-height: 0.85;
+}
+
+.about-intro__unit {
+  padding-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+/* 오른쪽 글 */
+.about-intro__text {
+  padding-left: clamp(20px, 3vw, 36px);
+  border-left: 1px solid rgba(240, 180, 92, 0.5);
+}
+
+.about-intro__text p {
+  margin: 0 0 14px;
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.9;
+  color: rgba(246, 241, 234, 0.86);
+  word-break: keep-all;
+}
+
+.about-intro__lead {
+  font-size: clamp(20px, 2vw, 26px) !important;
+  font-weight: 600;
+  line-height: 1.5 !important;
+  letter-spacing: -0.01em;
+  color: var(--paper) !important;
+}
+
+.about-intro__text em {
+  font-style: normal;
+  color: var(--amber);
+}
+
+.about-intro__thanks {
+  margin: 22px 0 0 !important;
+  color: var(--paper-dim) !important;
+}
+
+@media (max-width: 640px) {
+  .about-intro {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* 좁은 화면에서는 줄바꿈을 자연스럽게 */
+  .about-intro__text br {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   소개 페이지 — 편의시설 및 서비스 / 반려동물 / 주차
+   -------------------------------------------------------------------------- */
+
+.amenities {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: space-between;
+  gap: 28px clamp(24px, 4vw, 48px);
+  max-width: var(--page-w);
+  margin-top: clamp(28px, 4vw, 40px);
+  padding-bottom: clamp(28px, 4vw, 40px);
+  border-bottom: 1px solid var(--line);
+}
+
+.amenities__title {
+  margin: 0 0 16px;
+  font-family: var(--font-ko);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--amber);
+}
+
+.amenities__list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 22px;
+  margin: 0;
+  padding: 0;
+}
+
+.amenity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 76px;
+  text-align: center;
+  color: var(--paper);
+}
+
+.amenity svg {
+  opacity: 0.9;
+}
+
+.amenity__label {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--paper-dim);
+  word-break: keep-all;
+}
+
+.amenity__badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .amenities {
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch;
+  }
+
+  .amenities__group:first-of-type {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .amenities__list {
+    gap: 16px 8px;
+  }
+
+  .amenity {
+    width: calc((100% - 24px) / 4);
+  }
+
+  .amenities__group:not(:first-of-type) .amenity {
+    width: 76px;
+  }
 }

@@ -30,6 +30,16 @@
 
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#14110e">
+  <!-- 메인 화면 안(iframe)에서 열렸는지 확인해서 위쪽 메뉴를 숨김 -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
+    }
+  </script>
 </head>
 
 <body class="page-sub">
@@ -50,7 +60,7 @@
     </nav>
   </header>
 
-  <main class="content-page">
+  <main class="content-page content-page--menu">
     <div class="page-head">
       <p class="page-head__eyebrow">Menu</p>
       <h1 class="page-head__title">메뉴</h1>
