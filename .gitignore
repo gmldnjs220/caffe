@@ -4,3 +4,6 @@
 node_modules
 dist
 .cache
+# Firebase
+.firebase
+firebase-debug.log
