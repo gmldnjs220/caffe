@@ -9,8 +9,8 @@
 //   그래서 로컬(npm start)에서 로그인을 시험하려면 여기에 값을 채워야 해요.
 
 export const firebaseConfig = {
-  apiKey: '',
-  authDomain: 'caffe-onebottle.firebaseapp.com',
-  projectId: 'caffe-onebottle',
-  appId: '',
+  apiKey: "AIzaSyAJAeL4H-zCDdzIqGgae9oH1POXbKTouvY",
+  authDomain: "caffe-onebottle.firebaseapp.com",
+  projectId: "caffe-onebottle",
+  appId: "1:804289953010:web:af407e4872e72a0a1f246b",
 };
