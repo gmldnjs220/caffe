@@ -39,37 +39,6 @@
   display: none;
 }
 
-/* ---------- 탭 ---------- */
-
-.auth-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-bottom: 26px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(246, 241, 234, 0.06);
-}
-
-.auth-tabs__btn {
-  height: 40px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--paper-dim);
-  font: 600 14px/1 var(--font-ko);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.auth-tabs__btn[aria-selected="true"] {
-  background: var(--paper);
-  color: var(--ink);
-}
-
-.auth-tabs__btn:focus-visible {
-  outline-offset: 2px;
-}
-
 /* ---------- 입력칸 ---------- */
 
 .auth-form {

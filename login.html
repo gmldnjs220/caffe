@@ -70,12 +70,8 @@
 
       <!-- 로그인 전 -->
       <section class="auth-card js-signed-out" hidden>
-        <div class="auth-tabs" role="tablist" aria-label="로그인 또는 회원가입">
-          <button type="button" class="auth-tabs__btn js-tab" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true" data-tab="login">로그인</button>
-          <button type="button" class="auth-tabs__btn js-tab" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" data-tab="signup" tabindex="-1">회원가입</button>
-        </div>
-
-        <form class="auth-form js-login-form" id="panel-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <!-- 로그인 / 회원가입 화면은 메인 사이드바의 LOGIN / SIGN IN 으로 바꿈 (login.html#signup 으로 바로 열 수도 있음) -->
+        <form class="auth-form js-login-form" id="panel-login" aria-label="로그인" novalidate>
           <div class="field">
             <label class="field__label" for="login-email">이메일</label>
             <input class="field__input" id="login-email" name="email" type="email" autocomplete="email" inputmode="email" required>
@@ -94,7 +90,7 @@
           <button type="submit" class="auth-btn auth-btn--primary">로그인</button>
         </form>
 
-        <form class="auth-form js-signup-form" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" novalidate hidden>
+        <form class="auth-form js-signup-form" id="panel-signup" aria-label="회원가입" novalidate hidden>
           <div class="field">
             <label class="field__label" for="signup-name">이름</label>
             <input class="field__input" id="signup-name" name="name" type="text" autocomplete="name" maxlength="30" required>
