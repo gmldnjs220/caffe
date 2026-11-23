@@ -18,6 +18,9 @@ const loginForm = $('.js-login-form');
 const signupForm = $('.js-signup-form');
 const passwordForm = $('.js-password-form');
 const passwordNote = $('.js-password-note');
+const pwBox = $('.js-pw-box');
+const pwToggle = $('.js-pw-toggle');
+const pwPanel = $('#pw-panel');
 const pwCurrentField = $('.js-pw-current-field');
 const pwMsg = $('.js-pw-msg');
 const deleteBox = $('.js-delete-box');
@@ -146,6 +149,18 @@ window.addEventListener('hashchange', () => {
 // 메인 화면(js/app.js)이 사이드바 버튼을 누를 때 부름
 window.selectAuthTab = (name) => selectTab(name === 'signup' ? 'signup' : 'login');
 
+/* ---------- 비밀번호 변경 칸 접기 / 펼치기 ---------- */
+
+function setPwOpen(open) {
+  pwBox.classList.toggle('is-open', open);
+  pwToggle.setAttribute('aria-expanded', String(open));
+  pwPanel.inert = !open; // 접혀 있을 때는 Tab 키로도 들어가지 않게
+}
+
+pwToggle.addEventListener('click', () => {
+  setPwOpen(!pwBox.classList.contains('is-open'));
+});
+
 /* ---------- 버튼 잠금 (요청 중 두 번 누르지 않게) ---------- */
 
 async function busy(task, msgTarget = msg) {
@@ -211,6 +226,7 @@ function render(user) {
     selectTab(loginForm.hidden ? 'signup' : 'login', true); // "로그아웃했어요" 같은 안내는 남김
     passwordForm.reset();
     show('', 'error', pwMsg);
+    setPwOpen(false);
     deleteForm.reset();
     deleteBox.open = false;
     show('', 'error', deleteMsg);
@@ -219,6 +235,7 @@ function render(user) {
   renderAccount(user);
   show('');
   if (recovering) {
+    setPwOpen(true);
     show('새 비밀번호를 정해 주세요.', 'info', pwMsg);
     passwordForm.elements.next.focus();
   }
@@ -390,6 +407,7 @@ function start() {
       pwCurrentField.hidden = false;
       passwordForm.reset();
       passwordForm.elements.username.value = user.email || '';
+      setPwOpen(false);
       say('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
     }, pwMsg);
   });

@@ -141,9 +141,17 @@
           <dl class="account-info js-account-info"></dl>
         </section>
 
-        <section class="auth-card" aria-labelledby="pw-title">
-          <h2 class="auth-card__title" id="pw-title">비밀번호 변경</h2>
+        <!-- 비밀번호 변경: 평소에는 접혀 있다가 제목 버튼을 누르면 아래로 펼쳐짐 -->
+        <section class="auth-card pw-box js-pw-box" aria-labelledby="pw-title">
+          <h2 class="pw-box__head">
+            <button type="button" class="pw-toggle js-pw-toggle" id="pw-title" aria-expanded="false" aria-controls="pw-panel">
+              비밀번호 변경
+              <span class="pw-toggle__icon" aria-hidden="true"></span>
+            </button>
+          </h2>
 
+          <div class="pw-panel" id="pw-panel" inert>
+            <div class="pw-panel__inner">
           <form class="auth-form js-password-form" novalidate hidden>
             <!-- 비밀번호 관리 프로그램이 어느 계정인지 알 수 있게 (화면에는 안 보임) -->
             <input class="visually-hidden js-pw-username" type="email" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" readonly>
@@ -167,6 +175,8 @@
           <p class="account-note js-password-note" hidden>
             구글 계정으로 가입하셔서 원보틀 비밀번호가 따로 없어요. 비밀번호는 구글 계정에서 관리돼요.
           </p>
+            </div>
+          </div>
 
           <p class="auth-msg js-pw-msg" role="status" aria-live="polite" hidden></p>
         </section>
