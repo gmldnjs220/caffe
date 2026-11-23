@@ -5,6 +5,6 @@
 // 두 값이 비어 있으면 사이트는 Supabase 대신 js/menu-data.js 의 메뉴를 보여 줘요.
 
 window.SUPABASE_CONFIG = {
-  url: '',
-  key: '',
+  url: 'https://zcyeeqluvbudfppmlqvc.supabase.co',
+  key: 'sb_publishable_Pz8Dz35il7XoNQn0HKeBBQ_DXZW-iBn',
 };
