@@ -95,14 +95,14 @@
     }, 400);
   }
 
-  // 로그인 페이지 안의 탭(로그인 / 회원가입) 고르기
-  // 사이드바의 LOGIN은 로그인 탭, SIGN IN은 회원가입 탭으로 열림
+  // 로그인 페이지의 화면(로그인 / 회원가입) 고르기 (js/login.js 의 window.selectAuthTab)
+  // 사이드바의 LOGIN은 로그인 화면, SIGN IN은 회원가입 화면으로 열림
   let pendingTab = null;
   function pickTab(name) {
     try {
-      const tab = frame.contentDocument && frame.contentDocument.querySelector(`.js-tab[data-tab="${name}"]`);
-      if (tab) tab.click();
-    } catch (err) { /* 페이지를 못 읽어도 그냥 로그인 탭으로 열림 */ }
+      const win = frame.contentWindow;
+      if (win && typeof win.selectAuthTab === 'function') win.selectAuthTab(name);
+    } catch (err) { /* 페이지를 못 읽어도 그냥 로그인 화면으로 열림 */ }
   }
 
   frame.addEventListener('load', () => {

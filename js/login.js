@@ -18,12 +18,14 @@ const loginForm = $('.js-login-form');
 const signupForm = $('.js-signup-form');
 const passwordForm = $('.js-password-form');
 const passwordNote = $('.js-password-note');
+const pwBox = $('.js-pw-box');
+const pwToggle = $('.js-pw-toggle');
+const pwPanel = $('#pw-panel');
 const pwCurrentField = $('.js-pw-current-field');
 const pwMsg = $('.js-pw-msg');
 const deleteBox = $('.js-delete-box');
 const deleteForm = $('.js-delete-form');
 const deleteMsg = $('.js-delete-msg');
-const tabs = [...document.querySelectorAll('.js-tab')];
 const keepBoxes = [...document.querySelectorAll('.js-keep')];
 
 // 메일 속 링크(가입 확인, 비밀번호 재설정)와 구글 로그인이 끝나면 돌아올 주소 = 이 페이지
@@ -128,28 +130,35 @@ function check({ data, error }) {
   return data;
 }
 
-/* ---------- 탭: 로그인 / 회원가입 ---------- */
+/* ---------- 로그인 / 회원가입 화면 고르기 ---------- */
+// 탭 버튼 없이, 메인 사이드바의 LOGIN / SIGN IN 이나 주소(login.html#signup)로 고름
 
 function selectTab(name, keepMessage = false) {
-  tabs.forEach((tab) => {
-    const on = tab.dataset.tab === name;
-    tab.setAttribute('aria-selected', String(on));
-    tab.tabIndex = on ? 0 : -1;
-  });
   loginForm.hidden = name !== 'login';
   signupForm.hidden = name !== 'signup';
   title.textContent = name === 'login' ? '로그인' : '회원가입';
   if (!keepMessage) show('');
 }
 
-tabs.forEach((tab) => tab.addEventListener('click', () => selectTab(tab.dataset.tab)));
+const tabFromHash = () => (location.hash === '#signup' ? 'signup' : 'login');
+if (location.hash === '#signup') selectTab('signup');
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#signup' || location.hash === '#login') selectTab(tabFromHash());
+});
 
-// 키보드 좌우 화살표로 탭 이동
-$('.auth-tabs').addEventListener('keydown', (e) => {
-  if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-  const next = tabs[(tabs.indexOf(document.activeElement) + 1) % tabs.length];
-  next.focus();
-  selectTab(next.dataset.tab);
+// 메인 화면(js/app.js)이 사이드바 버튼을 누를 때 부름
+window.selectAuthTab = (name) => selectTab(name === 'signup' ? 'signup' : 'login');
+
+/* ---------- 비밀번호 변경 칸 접기 / 펼치기 ---------- */
+
+function setPwOpen(open) {
+  pwBox.classList.toggle('is-open', open);
+  pwToggle.setAttribute('aria-expanded', String(open));
+  pwPanel.inert = !open; // 접혀 있을 때는 Tab 키로도 들어가지 않게
+}
+
+pwToggle.addEventListener('click', () => {
+  setPwOpen(!pwBox.classList.contains('is-open'));
 });
 
 /* ---------- 버튼 잠금 (요청 중 두 번 누르지 않게) ---------- */
@@ -217,6 +226,7 @@ function render(user) {
     selectTab(loginForm.hidden ? 'signup' : 'login', true); // "로그아웃했어요" 같은 안내는 남김
     passwordForm.reset();
     show('', 'error', pwMsg);
+    setPwOpen(false);
     deleteForm.reset();
     deleteBox.open = false;
     show('', 'error', deleteMsg);
@@ -225,6 +235,7 @@ function render(user) {
   renderAccount(user);
   show('');
   if (recovering) {
+    setPwOpen(true);
     show('새 비밀번호를 정해 주세요.', 'info', pwMsg);
     passwordForm.elements.next.focus();
   }
@@ -396,6 +407,7 @@ function start() {
       pwCurrentField.hidden = false;
       passwordForm.reset();
       passwordForm.elements.username.value = user.email || '';
+      setPwOpen(false);
       say('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
     }, pwMsg);
   });

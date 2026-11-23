@@ -70,12 +70,8 @@
 
       <!-- 로그인 전 -->
       <section class="auth-card js-signed-out" hidden>
-        <div class="auth-tabs" role="tablist" aria-label="로그인 또는 회원가입">
-          <button type="button" class="auth-tabs__btn js-tab" role="tab" id="tab-login" aria-controls="panel-login" aria-selected="true" data-tab="login">로그인</button>
-          <button type="button" class="auth-tabs__btn js-tab" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" data-tab="signup" tabindex="-1">회원가입</button>
-        </div>
-
-        <form class="auth-form js-login-form" id="panel-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <!-- 로그인 / 회원가입 화면은 메인 사이드바의 LOGIN / SIGN IN 으로 바꿈 (login.html#signup 으로 바로 열 수도 있음) -->
+        <form class="auth-form js-login-form" id="panel-login" aria-label="로그인" novalidate>
           <div class="field">
             <label class="field__label" for="login-email">이메일</label>
             <input class="field__input" id="login-email" name="email" type="email" autocomplete="email" inputmode="email" required>
@@ -94,7 +90,7 @@
           <button type="submit" class="auth-btn auth-btn--primary">로그인</button>
         </form>
 
-        <form class="auth-form js-signup-form" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" novalidate hidden>
+        <form class="auth-form js-signup-form" id="panel-signup" aria-label="회원가입" novalidate hidden>
           <div class="field">
             <label class="field__label" for="signup-name">이름</label>
             <input class="field__input" id="signup-name" name="name" type="text" autocomplete="name" maxlength="30" required>
@@ -145,9 +141,17 @@
           <dl class="account-info js-account-info"></dl>
         </section>
 
-        <section class="auth-card" aria-labelledby="pw-title">
-          <h2 class="auth-card__title" id="pw-title">비밀번호 변경</h2>
+        <!-- 비밀번호 변경: 평소에는 접혀 있다가 제목 버튼을 누르면 아래로 펼쳐짐 -->
+        <section class="auth-card pw-box js-pw-box" aria-labelledby="pw-title">
+          <h2 class="pw-box__head">
+            <button type="button" class="pw-toggle js-pw-toggle" id="pw-title" aria-expanded="false" aria-controls="pw-panel">
+              비밀번호 변경
+              <span class="pw-toggle__icon" aria-hidden="true"></span>
+            </button>
+          </h2>
 
+          <div class="pw-panel" id="pw-panel" inert>
+            <div class="pw-panel__inner">
           <form class="auth-form js-password-form" novalidate hidden>
             <!-- 비밀번호 관리 프로그램이 어느 계정인지 알 수 있게 (화면에는 안 보임) -->
             <input class="visually-hidden js-pw-username" type="email" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" readonly>
@@ -171,6 +175,8 @@
           <p class="account-note js-password-note" hidden>
             구글 계정으로 가입하셔서 원보틀 비밀번호가 따로 없어요. 비밀번호는 구글 계정에서 관리돼요.
           </p>
+            </div>
+          </div>
 
           <p class="auth-msg js-pw-msg" role="status" aria-live="polite" hidden></p>
         </section>

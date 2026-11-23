@@ -39,37 +39,6 @@
   display: none;
 }
 
-/* ---------- 탭 ---------- */
-
-.auth-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-bottom: 26px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(246, 241, 234, 0.06);
-}
-
-.auth-tabs__btn {
-  height: 40px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--paper-dim);
-  font: 600 14px/1 var(--font-ko);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.auth-tabs__btn[aria-selected="true"] {
-  background: var(--paper);
-  color: var(--ink);
-}
-
-.auth-tabs__btn:focus-visible {
-  outline-offset: 2px;
-}
-
 /* ---------- 입력칸 ---------- */
 
 .auth-form {
@@ -352,6 +321,90 @@
 
 .account-info {
   margin: 0;
+}
+
+/* ---------- 비밀번호 변경: 접었다 펼치기 ---------- */
+
+.pw-box__head {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pw-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pw-toggle:hover {
+  color: var(--amber);
+}
+
+/* 아래를 가리키는 꺾쇠, 펼치면 위로 뒤집힘 */
+.pw-toggle__icon {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 4px 0;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.35s ease, margin 0.35s ease;
+}
+
+.pw-box.is-open .pw-toggle__icon {
+  margin-bottom: -4px;
+  transform: rotate(225deg);
+}
+
+/* 높이 0 → 내용 높이로 내려오면서 흐릿했다가 또렷해짐 */
+.pw-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: grid-template-rows 0.4s ease, opacity 0.3s ease, transform 0.4s ease;
+}
+
+.pw-box.is-open .pw-panel {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: none;
+}
+
+.pw-panel__inner {
+  min-height: 0;
+  overflow: hidden;
+  /* 입력칸 테두리(포커스 링)가 잘리지 않게 살짝 여유 */
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.pw-panel__inner > :first-child {
+  margin-top: 20px;
+}
+
+.pw-panel__inner > :last-child {
+  margin-bottom: 4px;
+}
+
+.pw-box .auth-msg {
+  margin-top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pw-panel,
+  .pw-toggle__icon {
+    transition: none;
+  }
 }
 
 .account-info > div {
