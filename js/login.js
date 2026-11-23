@@ -1,9 +1,9 @@
 // 로그인 페이지: Supabase Auth (이메일/비밀번호, 구글 계정)
 // - 로그인하면 같은 페이지가 "내 계정"으로 바뀜: 가입 정보, 비밀번호 변경, 로그아웃, 회원 탈퇴
-// - Supabase 연결은 js/supabase.js, 연결 정보는 js/supabase-config.js
-// - 가입하면 DB의 users 테이블에 이름(nickname)과 전화번호(phone)가 자동으로 저장됨 (db/schema.sql 의 handle_new_user)
+// - Supabase 연결은 js/supabase-auth.js, 연결 정보는 js/supabase-config.js
+// - 회원가입하면 DB의 public.users 프로필이 자동으로 만들어짐 (db/schema.sql의 handle_new_user)
 
-import { getSupabaseOrNull, KEEP_KEY, markSessionAlive } from './supabase.js';
+import { getSupabaseOrNull, readKeep, writeKeep } from './supabase-auth.js';
 import { accountRows, displayName, hasPassword } from './account-view.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -18,6 +18,7 @@ const loginForm = $('.js-login-form');
 const signupForm = $('.js-signup-form');
 const passwordForm = $('.js-password-form');
 const passwordNote = $('.js-password-note');
+const pwCurrentField = $('.js-pw-current-field');
 const pwMsg = $('.js-pw-msg');
 const deleteBox = $('.js-delete-box');
 const deleteForm = $('.js-delete-form');
@@ -25,17 +26,21 @@ const deleteMsg = $('.js-delete-msg');
 const tabs = [...document.querySelectorAll('.js-tab')];
 const keepBoxes = [...document.querySelectorAll('.js-keep')];
 
+// 메일 속 링크(가입 확인, 비밀번호 재설정)와 구글 로그인이 끝나면 돌아올 주소 = 이 페이지
+// (Supabase 대시보드 → Authentication → URL Configuration → Redirect URLs에 들어 있어야 함)
+const pageUrl = () => `${location.origin}${location.pathname}`;
+
+// 비밀번호 재설정 메일의 링크로 들어온 상태 (현재 비밀번호 없이 새 비밀번호를 정함)
+let recovering = false;
+
 /* ---------- 로그인 상태 유지 ---------- */
 // 체크: 브라우저를 닫았다 열어도 로그인 유지 / 해제: 브라우저(탭)를 닫으면 로그아웃
 // 로그인 탭과 회원가입 탭의 체크박스는 서로 같은 값으로 맞춰지고, 마지막 선택을 기억함
-
-function readKeep() {
-  try { return localStorage.getItem(KEEP_KEY) !== '0'; } catch (err) { return true; }
-}
+// 실제로 어디에 저장할지는 js/supabase-auth.js의 authStorage가 이 값을 보고 정함
 
 function setKeep(on) {
   keepBoxes.forEach((box) => { box.checked = on; });
-  try { localStorage.setItem(KEEP_KEY, on ? '1' : '0'); } catch (err) { /* 저장이 막혀도 체크 상태로 동작 */ }
+  writeKeep(on);
 }
 
 setKeep(readKeep());
@@ -76,7 +81,7 @@ document.querySelectorAll('.auth input[type="password"]').forEach((input) => {
 // Supabase 오류 코드 → 한국어 안내
 const ERRORS = {
   invalid_credentials: '이메일 또는 비밀번호가 맞지 않아요.',
-  email_not_confirmed: '이메일 인증이 아직 안 됐어요. 가입할 때 받은 메일의 링크를 눌러 주세요.',
+  email_not_confirmed: '가입 확인 메일의 링크를 먼저 눌러 주세요. 메일이 안 보이면 스팸함도 확인해 주세요.',
   user_already_exists: '이미 가입된 이메일이에요. 로그인해 주세요.',
   email_exists: '이미 가입된 이메일이에요. 로그인해 주세요.',
   email_address_invalid: '이메일 형식이 올바르지 않아요.',
@@ -86,22 +91,25 @@ const ERRORS = {
   user_banned: '사용할 수 없는 계정이에요. 매장에 문의해 주세요.',
   over_request_rate_limit: '시도가 너무 많아요. 잠시 후 다시 해 주세요.',
   over_email_send_rate_limit: '메일을 너무 자주 보냈어요. 잠시 후 다시 해 주세요.',
+  session_not_found: '로그인이 끝났어요. 다시 로그인해 주세요.',
   // 아래는 사이트 설정 문제 (Supabase 대시보드에서 고쳐야 함)
-  signup_disabled: '지금은 회원가입을 받지 않아요. (관리자: Supabase → Authentication → Sign In / Providers)',
+  signup_disabled: '지금은 회원가입을 받지 않아요. (관리자: Supabase → Authentication → Sign In / Providers → Allow new users to sign up)',
   email_provider_disabled: '이메일 로그인이 아직 켜져 있지 않아요. (관리자: Supabase → Authentication → Sign In / Providers → Email)',
   provider_disabled: '이 로그인 방법이 아직 켜져 있지 않아요. (관리자: Supabase → Authentication → Sign In / Providers)',
+  delete_not_ready: '회원 탈퇴 기능이 아직 준비되지 않았어요. (관리자: db/schema.sql의 delete_my_account 함수를 SQL Editor에서 실행)',
+};
+// 예전 버전 Supabase는 code 없이 message만 줌
+const MESSAGES = {
+  'Invalid login credentials': 'invalid_credentials',
+  'Email not confirmed': 'email_not_confirmed',
+  'User already registered': 'user_already_exists',
+  'Signups not allowed for this instance': 'signup_disabled',
+  'Unsupported provider: provider is not enabled': 'provider_disabled',
 };
 
-// 오류 코드가 없는 오래된 응답을 위한 문구 기준
-const MESSAGE_RULES = [
-  [/invalid login credentials/i, 'invalid_credentials'],
-  [/email not confirmed/i, 'email_not_confirmed'],
-  [/already registered/i, 'user_already_exists'],
-  [/password should be at least/i, 'weak_password'],
-  [/unsupported provider|provider is not enabled/i, 'provider_disabled'],
-  [/failed to fetch|network/i, 'network'],
-];
-ERRORS.network = '인터넷 연결을 확인해 주세요.';
+function errorCode(err) {
+  return (err && (err.code || MESSAGES[err.message])) || '';
+}
 
 function show(text, type = 'error', target = msg) {
   target.textContent = text;
@@ -110,23 +118,14 @@ function show(text, type = 'error', target = msg) {
 }
 
 function errorText(err) {
-  let code = err && err.code;
-  if (!ERRORS[code]) {
-    const rule = MESSAGE_RULES.find(([re]) => re.test((err && err.message) || ''));
-    if (rule) [, code] = rule;
-  }
-  return ERRORS[code] || `문제가 생겼어요. 잠시 후 다시 해 주세요. (${(err && (err.code || err.message)) || '알 수 없음'})`;
+  if (err && err.name === 'AuthRetryableFetchError') return '인터넷 연결을 확인해 주세요.';
+  return ERRORS[errorCode(err)] || `문제가 생겼어요. 잠시 후 다시 해 주세요. (${errorCode(err) || (err && err.message)})`;
 }
 
-// supabase-js는 오류를 던지지 않고 { error }로 돌려줘서, 던지도록 바꿔 줌
-function check(result) {
-  if (result && result.error) throw result.error;
-  return result ? result.data : null;
-}
-
-// 메일 링크나 구글 로그인 뒤에 돌아올 주소 (메인 화면 안에서 열려 있어도 로그인 페이지 주소로)
-function loginUrl() {
-  return new URL('login.html', window.location.href).href.split('#')[0];
+// Supabase는 오류를 throw하지 않고 { error }로 돌려줘서, 오류가 있으면 throw로 바꿈
+function check({ data, error }) {
+  if (error) throw error;
+  return data;
 }
 
 /* ---------- 탭: 로그인 / 회원가입 ---------- */
@@ -172,12 +171,9 @@ async function busy(task, msgTarget = msg) {
 
 /* ---------- 로그인 상태 화면 ---------- */
 
-// 비밀번호 재설정 메일의 링크로 들어온 경우: 현재 비밀번호 없이 새 비밀번호만 정함
-let recovering = false;
-
 function renderAccount(user) {
   const name = displayName(user);
-  title.textContent = recovering ? '새 비밀번호 정하기' : '내 계정';
+  title.textContent = '내 계정';
   $('.js-me-avatar').textContent = name.trim().charAt(0).toUpperCase();
   $('.js-me-name').textContent = `${name}님, 반가워요`;
   $('.js-me-email').textContent = user.email || '';
@@ -199,17 +195,12 @@ function renderAccount(user) {
     return wrap;
   }));
 
-  // 비밀번호 변경: 이메일·비밀번호 계정만 (재설정 메일로 들어왔으면 항상)
-  const canChange = recovering || hasPassword(user);
+  // 비밀번호 변경: 이메일·비밀번호 계정만 (재설정 메일로 들어온 경우는 현재 비밀번호 없이)
+  const canChange = hasPassword(user) || recovering;
   passwordForm.hidden = !canChange;
   passwordNote.hidden = canChange;
+  pwCurrentField.hidden = recovering;
   passwordForm.elements.username.value = user.email || '';
-  const currentField = passwordForm.elements.current.closest('.field');
-  currentField.hidden = recovering;
-  if (recovering) {
-    show('새로 쓸 비밀번호를 아래에 입력해 주세요.', 'info', pwMsg);
-    passwordForm.elements.next.focus();
-  }
 
   // 회원 탈퇴 본인 확인: 비밀번호가 있으면 비밀번호, 구글로만 가입했으면 체크만
   $('.js-delete-password-field').hidden = !hasPassword(user);
@@ -232,36 +223,45 @@ function render(user) {
     return;
   }
   renderAccount(user);
-  if (!recovering) show('');
+  show('');
+  if (recovering) {
+    show('새 비밀번호를 정해 주세요.', 'info', pwMsg);
+    passwordForm.elements.next.focus();
+  }
 }
 
-// 메일 링크나 구글 로그인에서 오류와 함께 돌아온 경우 (예: 링크 만료)
+// 메일 링크나 구글 로그인에서 오류와 함께 돌아온 경우 (#error=...&error_description=...)
 function readReturnError() {
-  const params = new URLSearchParams(window.location.hash.slice(1) || window.location.search.slice(1));
-  const description = params.get('error_description');
-  if (!description) return null;
-  history.replaceState(null, '', window.location.pathname);
-  if (/expired|invalid/i.test(description)) return '링크가 만료됐거나 이미 사용됐어요. 다시 시도해 주세요.';
-  return `로그인하지 못했어요. (${description})`;
+  const params = new URLSearchParams(location.hash.slice(1) || location.search.slice(1));
+  const code = params.get('error_code') || params.get('error');
+  if (!code) return null;
+  history.replaceState(null, '', pageUrl());
+  if (code === 'otp_expired') return '메일 속 링크가 만료됐어요. 다시 요청해 주세요.';
+  return `로그인하지 못했어요. (${params.get('error_description') || code})`;
 }
 
 /* ---------- Supabase 연결 ---------- */
 
-async function start() {
-  const returnError = readReturnError();
-  const sb = await getSupabaseOrNull();
+function start() {
+  const sb = getSupabaseOrNull();
   if (!sb) {
     setupAlert.hidden = false;
     root.setAttribute('aria-busy', 'false');
     return;
   }
 
-  // 처음 열 때(INITIAL_SESSION)와 로그인·로그아웃할 때마다 화면을 다시 그림
+  const returnError = readReturnError();
+
+  // 처음 한 번(INITIAL_SESSION)과 로그인·로그아웃·정보 변경 때마다 불림
+  // (이 안에서 Supabase를 다시 부르면 멈출 수 있어서, 화면만 다시 그림)
   sb.auth.onAuthStateChange((event, session) => {
     if (event === 'PASSWORD_RECOVERY') recovering = true;
-    render(session ? session.user : null);
+    const user = session ? session.user : null;
+    setTimeout(() => {
+      render(user);
+      if (event === 'INITIAL_SESSION' && returnError) show(returnError);
+    }, 0);
   });
-  if (returnError) show(returnError);
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -271,21 +271,20 @@ async function start() {
       return;
     }
     busy(async () => {
-      markSessionAlive();
       check(await sb.auth.signInWithPassword({ email: email.value.trim(), password: password.value }));
     });
   });
 
   signupForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const { name, email, phone, password, password2 } = signupForm.elements;
-    const phoneDigits = phone.value.replace(/\D/g, '');
-    if (!name.value.trim() || !email.value.trim() || !phoneDigits || !password.value) {
-      show('이름, 이메일, 전화번호, 비밀번호를 모두 입력해 주세요.');
+    const { name, phone, email, password, password2 } = signupForm.elements;
+    const digits = phone.value.replace(/[^0-9]/g, '');
+    if (!name.value.trim() || !digits || !email.value.trim() || !password.value) {
+      show('이름, 전화번호, 이메일, 비밀번호를 모두 입력해 주세요.');
       return;
     }
-    if (!/^01\d{8,9}$/.test(phoneDigits)) {
-      show('휴대폰 번호를 확인해 주세요. (예: 010-1234-5678)');
+    if (!/^0\d{8,10}$/.test(digits)) {
+      show('전화번호를 다시 확인해 주세요. (예: 010-1234-5678)');
       phone.focus();
       return;
     }
@@ -299,28 +298,26 @@ async function start() {
       return;
     }
     busy(async () => {
-      markSessionAlive();
+      const address = email.value.trim();
       const data = check(await sb.auth.signUp({
-        email: email.value.trim(),
+        email: address,
         password: password.value,
-        options: {
-          emailRedirectTo: loginUrl(),
-          data: { nickname: name.value.trim(), phone: phoneDigits }, // → users 테이블에 저장
-        },
+        // nickname, phone은 DB 트리거가 public.users 프로필에 넣음
+        options: { data: { nickname: name.value.trim(), phone: digits }, emailRedirectTo: pageUrl() },
       }));
-      // 이메일 인증을 켜 둔 경우: 이미 가입된 이메일이면 identities가 비어 있음
-      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        show(ERRORS.user_already_exists);
-        return;
-      }
+      // 이메일 확인이 켜져 있으면 바로 로그인되지 않고 확인 메일이 감
       if (!data.session) {
-        const sentTo = email.value.trim();
+        // 이미 가입된 이메일이면 Supabase가 빈 계정 정보를 돌려줌
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          show(ERRORS.user_already_exists);
+          return;
+        }
         signupForm.reset();
         setKeep(readKeep());
         selectTab('login', true);
-        show(`${sentTo}(으)로 가입 확인 메일을 보냈어요. 메일의 링크를 누르면 가입이 끝나요. 메일이 안 보이면 스팸함도 확인해 주세요.`, 'info');
+        loginForm.elements.email.value = address;
+        show(`${address}(으)로 가입 확인 메일을 보냈어요. 메일 속 링크를 누르면 가입이 끝나요. 메일이 안 보이면 스팸함도 확인해 주세요.`, 'info');
       }
-      // 이메일 인증을 꺼 둔 경우에는 바로 로그인되고, onAuthStateChange가 화면을 바꿈
     });
   });
 
@@ -332,7 +329,7 @@ async function start() {
       return;
     }
     busy(async () => {
-      check(await sb.auth.resetPasswordForEmail(email, { redirectTo: loginUrl() }));
+      check(await sb.auth.resetPasswordForEmail(email, { redirectTo: pageUrl() }));
       // 가입 여부를 알려 주지 않도록 항상 같은 문구
       show(`${email}(으)로 비밀번호 재설정 메일을 보냈어요. 메일이 안 보이면 스팸함도 확인해 주세요.`, 'info');
     });
@@ -340,17 +337,28 @@ async function start() {
 
   $('.js-google').addEventListener('click', () => {
     busy(async () => {
-      markSessionAlive();
       const data = check(await sb.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: loginUrl(), skipBrowserRedirect: true },
+        options: { redirectTo: pageUrl(), skipBrowserRedirect: true },
       }));
-      // 구글 로그인 화면은 메인 화면 안(iframe)에서 열 수 없어서, 창 전체를 이동함
-      (window.top || window).location.href = data.url;
+      // 구글 로그인 화면은 다른 페이지 안(iframe)에서는 열리지 않아서, 메인 화면 안이면 창 전체를 옮김
+      try {
+        window.top.location.assign(data.url);
+      } catch (err) {
+        location.assign(data.url);
+      }
     });
   });
 
-  // 비밀번호 변경: 현재 비밀번호로 한 번 더 확인한 뒤 바꿈 (재설정 메일로 들어왔으면 확인 없이)
+  // 현재 비밀번호가 맞는지 확인 (같은 계정으로 다시 로그인해 봄)
+  async function confirmPassword(email, password) {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (!error) return true;
+    if (errorCode(error) === 'invalid_credentials') return false;
+    throw error;
+  }
+
+  // 비밀번호 변경: 현재 비밀번호로 한 번 더 확인한 뒤 바꿈
   passwordForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const { current, next, next2 } = passwordForm.elements;
@@ -377,40 +385,30 @@ async function start() {
     }
 
     busy(async () => {
-      const { data: { user } } = await sb.auth.getUser();
-      if (!recovering) {
-        const { error } = await sb.auth.signInWithPassword({ email: user.email, password: current.value });
-        if (error) {
-          // 확인 단계에서 비밀번호가 틀리면 "이메일 또는…" 대신 현재 비밀번호 문제라고 알려 줌
-          if (errorText(error) === ERRORS.invalid_credentials) {
-            say('현재 비밀번호가 맞지 않아요.');
-            current.focus();
-            return;
-          }
-          throw error;
-        }
+      const { user } = check(await sb.auth.getUser());
+      if (!recovering && !(await confirmPassword(user.email, current.value))) {
+        say('현재 비밀번호가 맞지 않아요.');
+        current.focus();
+        return;
       }
       check(await sb.auth.updateUser({ password: next.value }));
-      const wasRecovering = recovering;
       recovering = false;
+      pwCurrentField.hidden = false;
       passwordForm.reset();
       passwordForm.elements.username.value = user.email || '';
-      passwordForm.elements.current.closest('.field').hidden = false;
-      title.textContent = '내 계정';
-      say(wasRecovering ? '새 비밀번호로 바꿨어요.' : '비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
+      say('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
     }, pwMsg);
   });
 
   // 회원 탈퇴: 본인 확인 → DB 함수(delete_my_account)로 계정 정리 → 로그아웃
-  // 주문·후기 기록이 있으면 기록은 남기고 개인정보만 지움 (db/auth-delete-account.sql)
+  // 주문·후기 기록은 남기고 이름·전화번호·이메일 같은 개인정보만 지움 (docs/DB-설계.md)
   deleteForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const { password, agree } = deleteForm.elements;
     const say = (text, type = 'error') => show(text, type, deleteMsg);
 
     busy(async () => {
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) return;
+      const { user } = check(await sb.auth.getUser());
       const usePassword = hasPassword(user);
 
       if (usePassword && !password.value) {
@@ -423,29 +421,21 @@ async function start() {
         agree.focus();
         return;
       }
-
-      if (usePassword) {
-        const { error } = await sb.auth.signInWithPassword({ email: user.email, password: password.value });
-        if (error) {
-          if (errorText(error) === ERRORS.invalid_credentials) {
-            say('비밀번호가 맞지 않아요.');
-            password.focus();
-            return;
-          }
-          throw error;
-        }
+      if (usePassword && !(await confirmPassword(user.email, password.value))) {
+        say('비밀번호가 맞지 않아요.');
+        password.focus();
+        return;
       }
 
       const { error } = await sb.rpc('delete_my_account');
       if (error) {
-        if (/delete_my_account/.test(error.message || '')) {
-          say('탈퇴 기능이 아직 준비되지 않았어요. (관리자: db/auth-delete-account.sql 을 Supabase에서 실행)');
-          return;
-        }
+        // 함수가 아직 DB에 없을 때
+        if (error.code === 'PGRST202' || error.code === '42883') throw { code: 'delete_not_ready' };
         throw error;
       }
+      // 계정이 지워졌으니 이 브라우저의 로그인 정보만 지움
       await sb.auth.signOut({ scope: 'local' });
-      // 로그아웃되면 로그인 화면으로 바뀌고, 이 안내가 그 화면에 남음
+      // 로그인 화면으로 바뀌고, 이 안내가 그 화면에 남음
       show('회원 탈퇴가 끝났어요. 그동안 이용해 주셔서 감사해요.', 'info');
     }, deleteMsg);
   });

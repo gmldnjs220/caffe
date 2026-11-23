@@ -14,49 +14,43 @@ function formatDate(value, fmt) {
   return d && !Number.isNaN(d.getTime()) ? fmt.format(d) : '-';
 }
 
-// 01012345678 → 010-1234-5678
-export function formatPhone(value) {
-  const digits = String(value || '').replace(/\D/g, '');
-  if (digits.length === 11) return digits.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-  if (digits.length === 10) return digits.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-  return digits;
-}
-
-function providersOf(user) {
+function providers(user) {
   const list = (user.app_metadata && user.app_metadata.providers)
     || (user.identities || []).map((i) => i.provider);
-  return list.length ? list : [(user.app_metadata && user.app_metadata.provider) || 'email'];
+  return list && list.length ? list : [(user.app_metadata && user.app_metadata.provider) || 'email'];
 }
 
 // 이메일·비밀번호로 가입한 계정인지
 export function hasPassword(user) {
-  return providersOf(user).includes('email');
+  return providers(user).includes('email');
 }
 
-function meta(user) {
-  return user.user_metadata || {};
+// 가입할 때 적은 이름(nickname). 구글 가입이면 구글 이름
+function savedName(user) {
+  const meta = user.user_metadata || {};
+  return meta.nickname || meta.full_name || meta.name || '';
 }
 
 export function displayName(user) {
-  const m = meta(user);
-  return m.nickname || m.full_name || m.name || (user.email ? user.email.split('@')[0] : '손님');
+  return savedName(user) || (user.email ? user.email.split('@')[0] : '손님');
 }
 
 // [{ label, value, note? }]
 export function accountRows(user) {
-  const m = meta(user);
-  const providers = providersOf(user).map((p) => PROVIDERS[p] || p).join(', ');
-
-  return [
-    { label: '이름', value: m.nickname || m.full_name || m.name || '등록하지 않음' },
+  const meta = user.user_metadata || {};
+  const rows = [
+    { label: '이름', value: savedName(user) || '등록하지 않음' },
     {
       label: '이메일',
       value: user.email || '-',
       note: user.email ? (user.email_confirmed_at ? '인증됨' : '인증 전') : null,
     },
-    { label: '전화번호', value: m.phone ? formatPhone(m.phone) : '등록하지 않음' },
-    { label: '가입 방법', value: providers || '-' },
+  ];
+  if (meta.phone) rows.push({ label: '전화번호', value: meta.phone });
+  rows.push(
+    { label: '가입 방법', value: providers(user).map((p) => PROVIDERS[p] || p).join(', ') },
     { label: '가입일', value: formatDate(user.created_at, dateFmt) },
     { label: '마지막 로그인', value: formatDate(user.last_sign_in_at, dateTimeFmt) },
-  ];
+  );
+  return rows;
 }

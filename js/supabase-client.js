@@ -17,7 +17,25 @@
     return;
   }
 
+  // 로그인 상태 유지: 체크하면 localStorage, 해제하면 sessionStorage에 로그인 정보를 둠
+  // (js/supabase-auth.js의 authStorage와 같은 규칙. 한쪽을 바꾸면 다른 쪽도 같이 바꿔 주세요)
+  const KEEP_KEY = 'onebottle-keep-signed-in';
+  const safe = (fn) => { try { return fn(); } catch (err) { return null; } };
+  const keep = () => safe(() => localStorage.getItem(KEEP_KEY)) !== '0';
+  const storage = {
+    getItem: (key) => safe(() => localStorage.getItem(key) ?? sessionStorage.getItem(key)),
+    setItem: (key, value) => safe(() => {
+      const [use, drop] = keep() ? [localStorage, sessionStorage] : [sessionStorage, localStorage];
+      use.setItem(key, value);
+      drop.removeItem(key);
+    }),
+    removeItem: (key) => safe(() => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    }),
+  };
+
   window.sb = window.supabase.createClient(config.url, config.key, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    auth: { persistSession: true, autoRefreshToken: true, storage },
   });
 }());

@@ -39,6 +39,7 @@ module.exports = merge(common, {
         { from: 'site.webmanifest', to: 'site.webmanifest' },
         { from: 'js/login.js', to: 'js/login.js' },
         { from: 'js/supabase.js', to: 'js/supabase.js' },
+        { from: 'js/supabase-auth.js', to: 'js/supabase-auth.js' },
         { from: 'js/auth-nav.js', to: 'js/auth-nav.js' },
         { from: 'js/account-view.js', to: 'js/account-view.js' },
       ],

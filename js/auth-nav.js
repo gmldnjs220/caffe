@@ -32,12 +32,13 @@ if (links.length) {
   // Supabase는 필요한 뒤에 불러옴 (불러오지 못해도 링크는 "로그인"으로 그대로 동작)
   (async () => {
     try {
-      const { getSupabaseOrNull } = await import('./supabase.js');
-      const sb = await getSupabaseOrNull();
+      const { getSupabaseOrNull } = await import('./supabase-auth.js');
+      const sb = getSupabaseOrNull();
       if (!sb) {
         show(false);
         return;
       }
+      // 처음 한 번(INITIAL_SESSION)과 로그인·로그아웃할 때마다 불림
       sb.auth.onAuthStateChange((event, session) => {
         writeHint(Boolean(session));
         show(Boolean(session));
