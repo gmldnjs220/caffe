@@ -62,7 +62,7 @@ npm run build
 ├─ menu.html           메뉴
 ├─ notice.html         공지사항
 ├─ location.html       오시는 길
-├─ login.html          로그인 / 회원가입 (Firebase Authentication)
+├─ login.html          로그인 / 회원가입 (Supabase Auth)
 ├─ 404.html            없는 페이지 안내
 ├─ css/
 │  ├─ style.css        기본 초기화 스타일
@@ -76,9 +76,11 @@ npm run build
 │  ├─ login.js         로그인 페이지 동작 (이메일, 구글 로그인, 내 계정, 비밀번호 변경)
 │  ├─ account-view.js  내 계정에 보여 줄 가입 정보 정리
 │  ├─ auth-nav.js      모든 페이지 위쪽 메뉴: 로그인하면 "내 계정"으로 표시
-│  ├─ firebase.js      Firebase 연결 (로그인 페이지와 위쪽 메뉴가 같이 씀)
-│  ├─ firebase-config.js  Firebase 웹 앱 설정값 (로그인에 필요)
-│  ├─ menu-data.js     메뉴 데이터 (이름, 가격, 설명)
+│  ├─ supabase.js      Supabase 연결 (로그인 페이지와 위쪽 메뉴가 같이 씀)
+│  ├─ supabase-config.js  Supabase Project URL, publishable key
+│  ├─ supabase-client.js  메뉴 페이지용 Supabase 연결
+│  ├─ menu-api.js      메뉴를 Supabase에서 읽기 (실패하면 menu-data.js)
+│  ├─ menu-data.js     예비 메뉴 데이터 (이름, 가격, 설명)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)
 │  └─ notice.js        공지사항 열기/닫기 애니메이션
 ├─ img/
@@ -132,18 +134,19 @@ npm run build
 
 ---
 
-## 로그인 (Firebase Authentication) 설정
+## 로그인 (Supabase Auth) 설정
 
-`login.html`은 Firebase Authentication으로 이메일/비밀번호와 구글 계정 로그인을 처리합니다. Firebase 콘솔(https://console.firebase.google.com)의 `caffe-onebottle` 프로젝트에서 **처음 한 번만** 아래를 설정해야 동작합니다.
+`login.html`은 Supabase Auth로 이메일/비밀번호와 구글 계정 로그인을 처리합니다. 가입하면 DB의 `users` 테이블에 이름과 전화번호가 자동으로 저장됩니다(`db/schema.sql`의 `handle_new_user`). Supabase 대시보드(https://supabase.com/dashboard)에서 **처음 한 번만** 아래를 설정해야 합니다.
 
-1. **Authentication → 시작하기**를 누릅니다.
-2. **Authentication → 로그인 방법**에서 `이메일/비밀번호`와 `Google`을 **사용 설정**합니다. (Google은 프로젝트 지원 이메일을 고르라고 나옵니다)
-3. **프로젝트 설정(톱니바퀴) → 일반 → 내 앱**에 웹 앱(`</>`)이 없으면 하나 등록합니다.
-4. 로컬(`npm start`)에서도 로그인을 시험하려면, 같은 화면의 **SDK 설정 및 구성 → 구성** 값을 `js/firebase-config.js`에 붙여 넣습니다. 이 값은 비밀번호가 아니라서 저장소에 올려도 됩니다.
-   - 비워 두면 Firebase Hosting에 배포된 사이트(PR 미리보기 포함)에서만 설정을 자동으로 불러옵니다.
-5. 로그인이 "이 주소에서는 로그인할 수 없어요"라고 나오면 **Authentication → 설정 → 승인된 도메인**에 그 주소를 추가합니다. (`localhost`와 `*.web.app`, `*.firebaseapp.com`은 기본으로 들어 있음. PR 미리보기 주소도 `web.app`이라 보통은 그대로 됩니다)
+1. **Authentication → Sign In / Providers → Email**이 켜져 있는지 확인합니다. (가입 확인 메일을 보내려면 `Confirm email`도 켜 둡니다)
+2. **Authentication → URL Configuration**
+   - `Site URL`: 실제 사이트 주소 (예: `https://caffe-onebottle.web.app`)
+   - `Redirect URLs`: `http://localhost:8080/**`, `https://caffe-onebottle.web.app/**`, `https://*.web.app/**` (PR 미리보기용)
+   - 가입 확인 메일, 비밀번호 재설정 메일, 구글 로그인 뒤에 이 주소들로 돌아옵니다.
+3. **SQL Editor**에서 `db/auth-delete-account.sql`을 한 번 실행합니다. (회원 탈퇴 기능)
+4. (선택) 구글 로그인: **Authentication → Sign In / Providers → Google**을 켜고, Google Cloud Console에서 만든 OAuth 클라이언트 ID와 Secret을 넣습니다. Google 쪽 "승인된 리디렉션 URI"에는 Supabase 화면에 나오는 Callback URL을 넣습니다.
 
-가입한 회원 목록은 Firebase 콘솔의 **Authentication → 사용자**에서 볼 수 있습니다.
+가입한 회원 목록은 **Authentication → Users**와 **Table Editor → users**에서 볼 수 있습니다.
 
 ---
 

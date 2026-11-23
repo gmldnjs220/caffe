@@ -62,10 +62,10 @@
         <h1 class="page-head__title js-title">로그인</h1>
       </div>
 
-      <!-- Firebase 설정이 없을 때 안내 (js/firebase-config.js) -->
+      <!-- Supabase 연결 정보가 없을 때 안내 (js/supabase-config.js) -->
       <p class="auth-alert js-setup" hidden>
         로그인 설정이 아직 연결되지 않았어요.<br>
-        <code>js/firebase-config.js</code>에 Firebase 웹 앱 설정값을 넣어 주세요.
+        <code>js/supabase-config.js</code>에 Supabase Project URL과 publishable key를 넣어 주세요.
       </p>
 
       <!-- 로그인 전 -->
@@ -102,6 +102,11 @@
           <div class="field">
             <label class="field__label" for="signup-email">이메일</label>
             <input class="field__input" id="signup-email" name="email" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="signup-phone">휴대폰 번호</label>
+            <input class="field__input" id="signup-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="13" placeholder="010-1234-5678" aria-describedby="signup-phone-hint" required>
+            <p class="field__hint" id="signup-phone-hint">주문할 때 연락처로 자동 입력돼요</p>
           </div>
           <div class="field">
             <label class="field__label" for="signup-password">비밀번호</label>
@@ -181,7 +186,8 @@
 
           <form class="auth-form danger-zone__form js-delete-form" novalidate>
             <p class="danger-zone__warn">
-              탈퇴하면 계정과 가입 정보가 바로 지워지고 <strong>되돌릴 수 없어요.</strong>
+              탈퇴하면 계정과 가입 정보(이름, 이메일, 전화번호)가 바로 지워지고 <strong>되돌릴 수 없어요.</strong>
+              주문·후기 기록은 매장 기록으로 남지만 누가 썼는지는 알 수 없게 돼요.
               같은 이메일로 다시 가입하면 새 계정으로 시작해요.
             </p>
 
@@ -190,9 +196,9 @@
               <label class="field__label" for="delete-password">비밀번호 확인</label>
               <input class="field__input" id="delete-password" name="password" type="password" autocomplete="current-password">
             </div>
-            <!-- 구글 계정: 구글 확인 창으로 본인 확인 -->
+            <!-- 구글 계정: 비밀번호가 없어서 아래 확인 칸만 체크 -->
             <p class="account-note js-delete-google-note" hidden>
-              탈퇴 버튼을 누르면 본인 확인을 위해 구글 로그인 창이 한 번 더 열려요.
+              구글 계정으로 가입하셔서 비밀번호 확인 없이 아래 칸에 체크하면 탈퇴돼요.
             </p>
 
             <label class="check">
