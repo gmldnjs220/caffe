@@ -228,6 +228,11 @@
   font-weight: 600;
 }
 
+/* 로그인: 메뉴 목록 맨 아래에 한 칸 띄워서 */
+.sidebar__login {
+  margin-top: 18px;
+}
+
 .sidebar__accent a:hover,
 .sidebar__accent a:focus-visible {
   color: var(--paper);

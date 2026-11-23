@@ -27,6 +27,10 @@
   <script>
     if (window.self !== window.top) {
       document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
     }
   </script>
 </head>
