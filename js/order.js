@@ -40,6 +40,11 @@ const findCat = (id) => CATEGORIES.find((c) => c.id === id);
 const findItem = (cat, name) => cat && cat.items.find((i) => i.name === name);
 const tempOf = (cat, item) => ('temp' in item ? item.temp : cat.temp);
 
+// 품절 (menu-data.js의 soldOut: true). 종류(variants)가 모두 품절이면 메뉴 전체가 품절
+const isSoldOut = (item) => Boolean(item.soldOut) || Boolean(item.variants && item.variants.every((v) => v.soldOut));
+const lineSoldOut = (item, line) => isSoldOut(item)
+  || Boolean(line.variant && item.variants && (item.variants.find((v) => v.label === line.variant) || {}).soldOut);
+
 // 옵션 조합까지 반영한 한 잔(한 개) 가격
 function unitPrice(item, choice) {
   const base = item.variants
@@ -67,15 +72,24 @@ GROUPS.forEach((group) => {
 CATEGORIES.forEach((cat) => {
   const list = el('ul', { class: 'order-grid__list' });
   cat.items.forEach((item) => {
+    const soldOut = isSoldOut(item);
+    const onSale = item.variants ? item.variants.filter((v) => !v.soldOut) : null;
     const price = item.variants
-      ? `${won(Math.min(...item.variants.map((v) => toWon(v.price))))}~`
+      ? `${won(Math.min(...(onSale.length ? onSale : item.variants).map((v) => toWon(v.price))))}~`
       : won(toWon(item.price));
     list.append(el('li', {}, el('button', {
-      type: 'button', class: 'order-item', 'data-cat': cat.id, 'data-name': item.name, 'aria-haspopup': 'dialog',
+      type: 'button',
+      class: soldOut ? 'order-item is-soldout' : 'order-item',
+      'data-cat': cat.id,
+      'data-name': item.name,
+      'aria-haspopup': soldOut ? null : 'dialog',
+      disabled: soldOut,
     }, [
       el('span', { class: 'order-item__name', text: item.name }),
       el('span', { class: 'order-item__price', text: price }),
-      el('span', { class: 'order-item__add', 'aria-hidden': 'true', text: '+' }),
+      soldOut
+        ? el('span', { class: 'order-item__soldout', text: '품절' })
+        : el('span', { class: 'order-item__add', 'aria-hidden': 'true', text: '+' }),
     ])));
   });
 
@@ -116,16 +130,27 @@ function save() {
   } catch (err) { /* 개인정보 보호 모드 등에서는 저장 없이 동작 */ }
 }
 
+// 장바구니를 불러오면서 없어진 메뉴는 버리고, 그사이 품절된 메뉴는 빼서 이름 목록으로 돌려줌
 function load() {
+  const removed = [];
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
-    // 메뉴가 바뀌어 없어진 항목은 버림
     cart = Array.isArray(saved)
-      ? saved.filter((line) => findItem(findCat(line.catId), line.name) && line.qty > 0)
+      ? saved.filter((line) => {
+        const item = findItem(findCat(line.catId), line.name);
+        if (!item || !(line.qty > 0)) return false;
+        if (lineSoldOut(item, line)) {
+          removed.push(line.name);
+          return false;
+        }
+        return true;
+      })
       : [];
   } catch (err) {
     cart = [];
   }
+  if (removed.length) save();
+  return removed;
 }
 
 const sameChoice = (a, b) => a.catId === b.catId && a.name === b.name && a.temp === b.temp
@@ -241,8 +266,8 @@ let picking = null; // { cat, item, choice, qty }
 function radioGroup(title, name, values, checked, render = (v) => v) {
   return el('fieldset', { class: 'pick__group' }, [
     el('legend', { class: 'pick__label', text: title }),
-    el('div', { class: 'pick__choices' }, values.map((v) => el('label', { class: 'choice' }, [
-      el('input', { type: 'radio', name, value: v.value, checked: v.value === checked }),
+    el('div', { class: 'pick__choices' }, values.map((v) => el('label', { class: v.soldOut ? 'choice is-soldout' : 'choice' }, [
+      el('input', { type: 'radio', name, value: v.value, checked: v.value === checked, disabled: v.soldOut }),
       el('span', { class: 'choice__box' }, render(v)),
     ]))),
   ]);
@@ -257,9 +282,10 @@ function updatePickTotal() {
 
 function openPick(cat, item) {
   const temp = tempOf(cat, item);
+  const firstOnSale = item.variants && item.variants.find((v) => !v.soldOut);
   const choice = {
     temp: temp === 'both' ? 'ice' : (temp || null),
-    variant: item.variants ? item.variants[0].label : null,
+    variant: firstOnSale ? firstOnSale.label : null, // 품절이 아닌 첫 번째 종류를 미리 골라 둠
     options: [],
   };
   picking = { cat, item, choice, qty: 1 };
@@ -277,8 +303,8 @@ function openPick(cat, item) {
     fields.push(el('p', { class: 'pick__fixed' }, el('span', { class: `tag tag--${temp}`, text: `${TEMP_TEXT[temp]} ONLY` })));
   }
   if (item.variants) {
-    fields.push(radioGroup('종류', 'variant', item.variants.map((v) => ({ value: v.label, price: v.price })), choice.variant,
-      (v) => [el('span', { text: v.value }), el('span', { class: 'choice__price', text: won(toWon(v.price)) })]));
+    fields.push(radioGroup('종류', 'variant', item.variants.map((v) => ({ value: v.label, price: v.price, soldOut: v.soldOut })), choice.variant,
+      (v) => [el('span', { text: v.value }), el('span', { class: 'choice__price', text: v.soldOut ? '품절' : won(toWon(v.price)) })]));
   }
   if (item.options) {
     fields.push(el('fieldset', { class: 'pick__group' }, [
@@ -314,14 +340,20 @@ pickFields.addEventListener('change', (e) => {
 qtyMinus.addEventListener('click', () => { picking.qty = Math.max(1, picking.qty - 1); updatePickTotal(); });
 qtyPlus.addEventListener('click', () => { picking.qty = Math.min(MAX_QTY, picking.qty + 1); updatePickTotal(); });
 
-pick.querySelector('.js-pick-add').addEventListener('click', () => {
-  addToCart({ catId: picking.cat.id, name: picking.item.name, ...picking.choice, qty: picking.qty });
-  pick.close();
+function showToast(text) {
   const toast = document.querySelector('.js-toast') || document.body.appendChild(el('div', { class: 'toast js-toast', role: 'status' }));
-  toast.textContent = `${picking.item.name} ${picking.qty}개를 담았어요`;
+  toast.textContent = text;
   toast.classList.remove('is-show');
   void toast.offsetWidth;
   toast.classList.add('is-show');
+}
+
+pick.querySelector('.js-pick-add').addEventListener('click', () => {
+  const line = { catId: picking.cat.id, name: picking.item.name, ...picking.choice, qty: picking.qty };
+  if (lineSoldOut(picking.item, line)) return; // 품절은 담지 않음 (보통은 버튼이 막혀 있어서 여기까지 안 옴)
+  addToCart(line);
+  pick.close();
+  showToast(`${picking.item.name} ${picking.qty}개를 담았어요`);
 });
 
 pick.querySelector('.js-pick-close').addEventListener('click', () => pick.close());
@@ -363,5 +395,8 @@ confirmDlg.querySelector('.js-confirm-done').addEventListener('click', () => {
 });
 confirmDlg.addEventListener('click', (e) => { if (e.target === confirmDlg) confirmDlg.close(); });
 
-load();
+const removedSoldOut = load();
 renderCart();
+if (removedSoldOut.length) {
+  showToast(`품절된 메뉴(${[...new Set(removedSoldOut)].join(', ')})를 장바구니에서 뺐어요`);
+}

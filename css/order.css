@@ -782,3 +782,41 @@
     transition: none;
   }
 }
+
+/* ---------- 품절 (menu-data.js의 soldOut: true) ---------- */
+
+.order-item.is-soldout {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.order-item.is-soldout:hover {
+  border-color: var(--line);
+  transform: none;
+}
+
+.order-item.is-soldout .order-item__price {
+  text-decoration: line-through;
+}
+
+.order-item__soldout {
+  position: absolute;
+  right: 12px;
+  bottom: 14px;
+  padding: 4px 8px;
+  border: 1px solid rgba(224, 120, 106, 0.7);
+  border-radius: 999px;
+  color: #e0786a;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.choice.is-soldout {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.choice.is-soldout .choice__price {
+  color: #e0786a;
+}

@@ -73,7 +73,7 @@ const CATEGORIES = [
       { name: '복숭아 아이스티', price: 6.5, desc: '달콤한 복숭아 아이스티.' },
       {
         name: '어린이 음료', temp: null, desc: '아이들을 위한 메뉴예요. 뽀로로 음료 또는 아이스크림 중에서 골라 주세요.',
-        variants: [{ label: '뽀로로 음료', price: 3.5 }, { label: '아이스크림', price: 5.0 }],
+        variants: [{ label: '뽀로로 음료', price: 3.5 }, { label: '아이스크림', price: 5.0, soldOut: true }], // 예시 품절 (종류 하나만)
       },
     ],
   },
@@ -82,7 +82,7 @@ const CATEGORIES = [
     items: [
       { name: '플레인요거트 스무디', price: 7.0, milk: true, desc: '새콤한 플레인 요거트를 시원하게 갈아 만든 스무디.' },
       { name: '딸기스무디', price: 7.0, desc: '달콤한 딸기를 듬뿍 넣어 시원하게 간 스무디.' },
-      { name: '망고스무디', price: 7.0, desc: '진한 망고의 단맛을 담은 스무디.' },
+      { name: '망고스무디', price: 7.0, soldOut: true, desc: '진한 망고의 단맛을 담은 스무디.' }, // 예시 품절
       { name: '블루베리스무디', price: 7.0, desc: '새콤달콤한 블루베리 스무디.' },
     ],
   },
@@ -105,7 +105,7 @@ const CATEGORIES = [
       { name: '치즈베이글', price: 5.5, desc: '쫄깃한 베이글에 치즈를 더했어요.' },
       { name: '크로크무슈', price: 5.5, desc: '햄과 치즈를 넣고 노릇하게 구운 프랑스식 샌드위치.' },
       { name: '크로플(아이스크림)', price: 6.5, desc: '크루아상 반죽을 와플 틀에 구워 아이스크림을 곁들인 디저트.' },
-      { name: '호두 타르트', price: 7.8, desc: '고소한 호두를 가득 올린 타르트.' },
+      { name: '호두 타르트', price: 7.8, soldOut: true, desc: '고소한 호두를 가득 올린 타르트.' }, // 예시 품절
     ],
   },
   {
@@ -113,7 +113,7 @@ const CATEGORIES = [
     items: [
       { name: '치즈케이크', price: 6.5, desc: '진하고 부드러운 크림치즈 케이크.' },
       { name: '초코무스케이크', price: 6.5, desc: '입에서 사르르 녹는 초콜릿 무스 케이크.' },
-      { name: '당근케이크', price: 7.5, desc: '촉촉한 당근 시트에 크림치즈 프로스팅을 올린 케이크.' },
+      { name: '당근케이크', price: 7.5, soldOut: true, desc: '촉촉한 당근 시트에 크림치즈 프로스팅을 올린 케이크.' }, // 예시 품절
       { name: '크림카스테라', price: 7.5, desc: '폭신한 카스테라에 부드러운 크림을 채웠어요.' },
       // TODO: 메뉴판 사진에서 가격이 마우스 커서에 가려져 있음 — 확인 필요
       { name: '티라미수', price: 7.5, desc: '에스프레소에 적신 시트와 마스카포네 크림을 쌓은 이탈리아 디저트.' },
