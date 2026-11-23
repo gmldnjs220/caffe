@@ -95,7 +95,21 @@
     }, 400);
   }
 
-  frame.addEventListener('load', () => layer.classList.remove('is-swapping'));
+  // 로그인 페이지 안의 탭(로그인 / 회원가입) 고르기
+  // 사이드바의 LOGIN은 로그인 탭, SIGN IN은 회원가입 탭으로 열림
+  let pendingTab = null;
+  function pickTab(name) {
+    try {
+      const tab = frame.contentDocument && frame.contentDocument.querySelector(`.js-tab[data-tab="${name}"]`);
+      if (tab) tab.click();
+    } catch (err) { /* 페이지를 못 읽어도 그냥 로그인 탭으로 열림 */ }
+  }
+
+  frame.addEventListener('load', () => {
+    layer.classList.remove('is-swapping');
+    if (pendingTab) pickTab(pendingTab);
+    pendingTab = null;
+  });
 
   // 사이드바 안의 about / notice / location / menu / login 링크는 메인 안에서 열기
   sidebar.addEventListener('click', (e) => {
@@ -104,7 +118,13 @@
     const href = a.getAttribute('href');
     if (isPage(href)) {
       e.preventDefault();
-      openPage(href);
+      // 로그인한 상태(MY ACCOUNT)면 탭을 고르지 않고 그냥 계정 화면을 엶
+      const tab = a.classList.contains('is-signed-in') ? null : a.dataset.tab;
+      if (tab && pageOf(href) === current) pickTab(tab);
+      else {
+        pendingTab = tab || null;
+        openPage(href);
+      }
     } else if (href === 'index.html' && body.classList.contains('is-page-open')) {
       e.preventDefault(); // 로고를 누르면 메인으로 돌아오기
       closePage();

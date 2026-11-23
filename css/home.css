@@ -228,9 +228,29 @@
   font-weight: 600;
 }
 
-/* 로그인: 메뉴 목록 맨 아래에 한 칸 띄워서 */
-.sidebar__login {
-  margin-top: 18px;
+/* 로그인 / 회원가입: ABOUT 위에 작은 글씨로 나란히 */
+.sidebar__auth {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sidebar__nav .sidebar__auth a {
+  padding: 2px 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--paper-dim);
+}
+
+.sidebar__nav .sidebar__auth a:hover,
+.sidebar__nav .sidebar__auth a:focus-visible {
+  color: var(--amber);
+}
+
+/* 로그인한 뒤에는 LOGIN 자리에 MY ACCOUNT만 보이고 SIGN IN은 숨김 */
+.sidebar__auth a.is-signed-in ~ a {
+  display: none;
 }
 
 .sidebar__accent a:hover,
