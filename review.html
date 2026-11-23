@@ -1,0 +1,109 @@
+<!doctype html>
+<html class="no-js" lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>리뷰 · ONE BOTTLE</title>
+  <meta name="description" content="네이버 플레이스에 남겨 주신 원보틀 방문 리뷰">
+
+  <!-- 공유 미리보기(카카오톡, SNS). 도메인이 정해지면 og:url을 추가하고 og:image를 https:// 절대 주소로 바꿔 주세요 -->
+  <meta property="og:site_name" content="ONE BOTTLE">
+  <meta property="og:title" content="리뷰 · ONE BOTTLE">
+  <meta property="og:description" content="네이버 플레이스에 남겨 주신 원보틀 방문 리뷰">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="img/og-image.jpg">
+  <meta property="og:image:alt" content="통창 너머로 벚꽃이 보이는 원보틀 카페 내부">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/review.css">
+
+  <link rel="icon" href="favicon.ico?v=3" sizes="any">
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.png?v=3">
+
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#14110e">
+  <!-- 메인 화면 안(iframe)에서 열렸는지 확인해서 위쪽 메뉴를 숨김 -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
+    }
+  </script>
+</head>
+
+<body class="page-sub">
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="ONE BOTTLE 홈">
+      <span class="brand__name">ONE BOTTLE</span>
+      <span class="brand__sub">Coffee / Beer</span>
+    </a>
+
+    <nav class="gnb" aria-label="주 메뉴">
+      <ul>
+        <li><a href="about.html">소개</a></li>
+        <li><a href="menu.html">메뉴</a></li>
+        <li><a href="notice.html">공지사항</a></li>
+        <li><a href="review.html" aria-current="page">리뷰</a></li>
+        <li><a href="location.html">오시는 길</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="content-page content-page--review">
+    <div class="page-head">
+      <p class="page-head__eyebrow">Review</p>
+      <h1 class="page-head__title">리뷰</h1>
+      <p class="page-head__desc js-source"></p>
+    </div>
+
+    <!-- review-data.js의 REVIEW_SAMPLE이 true일 때만 보임 -->
+    <p class="review-sample js-sample" hidden>
+      <strong>예시 화면</strong>
+      지금 보이는 리뷰와 숫자는 화면 확인용 예시예요. 실제 손님 리뷰가 아니에요.
+    </p>
+
+    <section class="review-summary" aria-label="리뷰 요약">
+      <dl class="review-count js-count"></dl>
+
+      <div class="review-keywords">
+        <h2 class="review-sub">이런 점이 좋았어요</h2>
+        <ul class="keyword-list js-keywords"></ul>
+      </div>
+    </section>
+
+    <section class="review-section" aria-labelledby="review-list-title">
+      <div class="review-section__head">
+        <h2 class="review-sub" id="review-list-title">방문자 리뷰</h2>
+        <button type="button" class="review-reset js-reset" hidden>전체 보기</button>
+      </div>
+      <p class="review-filter-note js-filter-note" aria-live="polite"></p>
+      <ul class="review-list js-list"></ul>
+    </section>
+
+    <div class="review-cta">
+      <a class="review-btn review-btn--primary js-naver" href="#" target="_blank" rel="noopener">
+        네이버에서 리뷰 전체 보기
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <p class="review-cta__note">다녀가셨다면 네이버에 리뷰를 남겨 주세요. 큰 힘이 돼요.</p>
+    </div>
+  </main>
+
+  <script defer src="js/review-data.js"></script>
+  <script defer src="js/review.js"></script>
+
+</body>
+
+</html>

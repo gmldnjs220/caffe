@@ -6,6 +6,11 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = merge(common, {
   mode: 'production',
   plugins: [
+    new HtmlWebpackPlugin({
+      template: './review.html',
+      filename: 'review.html',
+      inject: false,
+    }),
     // 각 HTML에 <script>를 직접 넣어두었으므로 자동 삽입(inject)은 끔
     new HtmlWebpackPlugin({
       template: './index.html',
@@ -20,6 +25,8 @@ module.exports = merge(common, {
       patterns: [
         { from: 'img', to: 'img' },
         { from: 'css', to: 'css' },
+        { from: 'js/review-data.js', to: 'js/review-data.js' },
+        { from: 'js/review.js', to: 'js/review.js' },
         { from: 'js/menu-data.js', to: 'js/menu-data.js' },
         { from: 'js/menu.js', to: 'js/menu.js' },
         { from: 'js/notice.js', to: 'js/notice.js' },
