@@ -1,5 +1,5 @@
 // 메뉴 페이지: 카테고리 필터 + 메뉴 상세 보기 (menu-api.js 다음에 실행)
-// 메뉴 데이터는 loadMenu()가 Supabase에서 읽어 와요. 연결이 안 되면 menu-data.js 를 써요.
+// 메뉴 데이터: 먼저 지난번 메뉴(없으면 menu-data.js)를 바로 보여 주고, Supabase에서 최신 메뉴가 오면 바꿔 그려요.
 
 const filterEl = document.querySelector('.js-filter');
 const boardEl = document.querySelector('.js-board');
@@ -39,6 +39,8 @@ function chip(id, label, count) {
 }
 
 function renderMenu() {
+  filterEl.replaceChildren();
+  boardEl.replaceChildren();
   filterEl.append(chip('all', '전체'));
   menuGroups.forEach((group) => {
     menuCats.filter((c) => c.group === group.id).forEach((c) => {
@@ -132,16 +134,38 @@ window.addEventListener('hashchange', () => applyFilter(location.hash.slice(1)))
 
 /* ---------- 시작 ---------- */
 
+function showMenu({ groups, categories, source }, filter) {
+  menuGroups = groups;
+  menuCats = categories;
+  boardEl.dataset.source = source;
+  validIds = new Set(['all', ...menuCats.map((c) => c.id)]);
+  renderMenu();
+  applyFilter(filter);
+}
+
+const menuKey = (data) => JSON.stringify([data.groups, data.categories]);
+
 async function initMenu() {
-  boardEl.setAttribute('aria-busy', 'true');
+  // 1) 기다리지 않고 바로 그리기
+  let shown = null;
   try {
-    const { groups, categories, source } = await window.loadMenu();
-    menuGroups = groups;
-    menuCats = categories;
-    boardEl.dataset.source = source;
-    validIds = new Set(['all', ...menuCats.map((c) => c.id)]);
-    renderMenu();
-    applyFilter(location.hash.slice(1) || 'all');
+    shown = window.loadMenuQuick();
+    showMenu(shown, location.hash.slice(1) || 'all');
+  } catch (err) {
+    console.error('[menu] 예비 메뉴를 그리지 못했어요.', err);
+    boardEl.setAttribute('aria-busy', 'true');
+  }
+
+  // 2) Supabase에서 최신 메뉴가 오면, 달라진 경우에만 다시 그리기 (보고 있던 카테고리는 그대로)
+  try {
+    const fresh = await window.loadMenu();
+    if (fresh && (!shown || menuKey(fresh) !== menuKey(shown))) {
+      const current = filterEl.querySelector('.chip[aria-pressed="true"]');
+      showMenu(fresh, current ? current.dataset.filter : 'all');
+    } else if (fresh) {
+      boardEl.dataset.source = fresh.source;
+    }
+    if (!fresh && !shown) throw new Error('메뉴 데이터가 없어요.');
   } catch (err) {
     console.error('[menu] 메뉴를 불러오지 못했어요.', err);
     boardEl.replaceChildren(el('p', { class: 'menu-board__error', text: '메뉴를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' }));
