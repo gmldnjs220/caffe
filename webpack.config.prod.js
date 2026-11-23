@@ -23,6 +23,7 @@ module.exports = merge(common, {
         { from: 'js/menu-data.js', to: 'js/menu-data.js' },
         { from: 'js/menu.js', to: 'js/menu.js' },
         { from: 'js/notice.js', to: 'js/notice.js' },
+        { from: 'js/hours.js', to: 'js/hours.js' },
         { from: 'icon.svg', to: 'icon.svg' },
         { from: 'favicon.ico', to: 'favicon.ico' },
         { from: 'robots.txt', to: 'robots.txt' },

@@ -232,3 +232,48 @@ html.is-embed body {
 html.is-embed .site-header {
   display: none;
 }
+
+/* --------------------------------------------------------------------------
+   지금 영업 중 표시 (js/hours.js가 data-state를 붙임)
+   -------------------------------------------------------------------------- */
+
+/* 좁은 곳(홈 사이드바)에서 두 줄로 넘어가도 글자처럼 자연스럽게 이어지도록 inline */
+.open-status::before {
+  content: "";
+  display: inline-block;
+  margin-right: 7px;
+  vertical-align: 0.12em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--paper-dim);
+}
+
+.open-status[data-state="open"]::before {
+  background: #5fd08a;
+  box-shadow: 0 0 0 3px rgba(95, 208, 138, 0.2);
+}
+
+.open-status[data-state="soon"]::before {
+  background: var(--amber);
+  box-shadow: 0 0 0 3px rgba(240, 180, 92, 0.2);
+}
+
+.open-status[data-state="closed"]::before {
+  background: #e0786a;
+}
+
+.open-status__detail::before {
+  content: " · ";
+}
+
+/* 홈 사이드바: 폭이 좁아서 시간은 다음 줄에, 점 오른쪽에 맞춰서 */
+.sidebar__util .open-status__detail {
+  display: block;
+  padding-left: 14px;
+  font-weight: 400;
+}
+
+.sidebar__util .open-status__detail::before {
+  content: none;
+}
