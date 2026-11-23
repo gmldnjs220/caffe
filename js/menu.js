@@ -54,10 +54,11 @@ GROUPS.forEach((group) => {
         ? item.variants.map((v) => short(v.price)).join(' / ')
         : short(item.price);
       list.append(el('li', {}, el('button', {
-        type: 'button', class: 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
+        type: 'button', class: item.soldOut ? 'menu-item is-soldout' : 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
         'aria-haspopup': 'dialog',
       }, [
         el('span', { class: 'menu-item__name', text: item.name }),
+        item.soldOut ? el('span', { class: 'soldout-badge', text: '품절' }) : null,
         el('span', { class: 'menu-item__lead', 'aria-hidden': 'true' }),
         el('span', { class: 'menu-item__price', text: price }),
       ])));
@@ -143,8 +144,8 @@ function openSheet(cat, item) {
 
   sheetPrice.replaceChildren(
     ...(item.variants
-      ? item.variants.map((v) => el('div', { class: 'sheet__variant' }, [
-        el('span', { text: v.label }),
+      ? item.variants.map((v) => el('div', { class: v.soldOut ? 'sheet__variant is-soldout' : 'sheet__variant' }, [
+        el('span', {}, [v.label, v.soldOut ? el('span', { class: 'soldout-badge', text: '품절' }) : null]),
         el('strong', { text: won(v.price) }),
       ]))
       : [el('strong', { text: won(item.price) })]),
@@ -152,6 +153,7 @@ function openSheet(cat, item) {
   sheetPrice.classList.toggle('has-variants', Boolean(item.variants));
 
   const tags = [];
+  if (item.soldOut) tags.push(el('li', { class: 'tag tag--soldout', text: '오늘 품절' }));
   if (temp) TEMP_LABEL[temp].forEach((t) => tags.push(el('li', { class: `tag tag--${t.cls}`, text: t.text })));
   if (caffeine === true) tags.push(el('li', { class: 'tag', text: '카페인' }));
   if (caffeine === false) tags.push(el('li', { class: 'tag', text: '논카페인' }));
