@@ -1,10 +1,14 @@
-// 메뉴 페이지: 카테고리 필터 + 메뉴 상세 보기 (menu-data.js 다음에 실행)
+// 메뉴 페이지: 카테고리 필터 + 메뉴 상세 보기 (menu-api.js 다음에 실행)
+// 메뉴 데이터는 loadMenu()가 Supabase에서 읽어 와요. 연결이 안 되면 menu-data.js 를 써요.
 
 const filterEl = document.querySelector('.js-filter');
 const boardEl = document.querySelector('.js-board');
 const sheet = document.querySelector('.js-sheet');
 
-const short = (p) => p.toFixed(1);
+let menuGroups = [];
+let menuCats = [];
+
+const short = (p) => (p == null ? '-' : p.toFixed(1));
 const won = (p) => `${Math.round(p * 1000).toLocaleString('ko-KR')}원`;
 
 const TEMP_LABEL = {
@@ -34,58 +38,60 @@ function chip(id, label, count) {
   ]);
 }
 
-filterEl.append(chip('all', '전체'));
-GROUPS.forEach((group) => {
-  CATEGORIES.filter((c) => c.group === group.id).forEach((c) => {
-    filterEl.append(chip(c.id, c.ko, c.items.length));
+function renderMenu() {
+  filterEl.append(chip('all', '전체'));
+  menuGroups.forEach((group) => {
+    menuCats.filter((c) => c.group === group.id).forEach((c) => {
+      filterEl.append(chip(c.id, c.ko, c.items.length));
+    });
   });
-});
 
-/* ---------- 메뉴판 ---------- */
+  /* ---------- 메뉴판 ---------- */
 
-GROUPS.forEach((group) => {
-  const cats = CATEGORIES.filter((c) => c.group === group.id);
-  const cols = el('div', { class: 'menu-group__cols' });
+  menuGroups.forEach((group) => {
+    const cats = menuCats.filter((c) => c.group === group.id);
+    const cols = el('div', { class: 'menu-group__cols' });
 
-  cats.forEach((cat) => {
-    const list = el('ul', { class: 'menu-list' });
-    cat.items.forEach((item, idx) => {
-      const price = item.variants
-        ? item.variants.map((v) => short(v.price)).join(' / ')
-        : short(item.price);
-      list.append(el('li', {}, el('button', {
-        type: 'button', class: 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
-        'aria-haspopup': 'dialog',
-      }, [
-        el('span', { class: 'menu-item__name', text: item.name }),
-        el('span', { class: 'menu-item__lead', 'aria-hidden': 'true' }),
-        el('span', { class: 'menu-item__price', text: price }),
-      ])));
+    cats.forEach((cat) => {
+      const list = el('ul', { class: 'menu-list' });
+      cat.items.forEach((item, idx) => {
+        const price = item.variants
+          ? item.variants.map((v) => short(v.price)).join(' / ')
+          : short(item.price);
+        list.append(el('li', {}, el('button', {
+          type: 'button', class: 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
+          'aria-haspopup': 'dialog',
+        }, [
+          el('span', { class: 'menu-item__name', text: item.name }),
+          el('span', { class: 'menu-item__lead', 'aria-hidden': 'true' }),
+          el('span', { class: 'menu-item__price', text: price }),
+        ])));
+      });
+
+      const meta = cat.note || (cat.temp ? TEMP_LABEL[cat.temp].map((t) => t.text).join(' / ') : '');
+      cols.append(el('section', { class: 'menu-cat', 'data-cat': cat.id, 'aria-labelledby': `cat-${cat.id}` }, [
+        el('header', { class: 'menu-cat__head' }, [
+          el('h3', { class: 'menu-cat__title', id: `cat-${cat.id}`, text: cat.en }),
+          el('span', { class: 'menu-cat__ko', text: cat.ko }),
+          meta ? el('span', { class: 'menu-cat__meta', text: meta }) : null,
+        ]),
+        list,
+      ]));
     });
 
-    const meta = cat.note || (cat.temp ? TEMP_LABEL[cat.temp].map((t) => t.text).join(' / ') : '');
-    cols.append(el('section', { class: 'menu-cat', 'data-cat': cat.id, 'aria-labelledby': `cat-${cat.id}` }, [
-      el('header', { class: 'menu-cat__head' }, [
-        el('h3', { class: 'menu-cat__title', id: `cat-${cat.id}`, text: cat.en }),
-        el('span', { class: 'menu-cat__ko', text: cat.ko }),
-        meta ? el('span', { class: 'menu-cat__meta', text: meta }) : null,
+    boardEl.append(el('section', { class: 'menu-group', 'data-group': group.id }, [
+      el('h2', { class: 'menu-group__title' }, [
+        el('span', { class: 'menu-group__en', text: group.en }),
+        el('span', { class: 'menu-group__ko', text: group.ko }),
       ]),
-      list,
+      cols,
     ]));
   });
-
-  boardEl.append(el('section', { class: 'menu-group', 'data-group': group.id }, [
-    el('h2', { class: 'menu-group__title' }, [
-      el('span', { class: 'menu-group__en', text: group.en }),
-      el('span', { class: 'menu-group__ko', text: group.ko }),
-    ]),
-    cols,
-  ]));
-});
+}
 
 /* ---------- 필터 동작 ---------- */
 
-const validIds = new Set(['all', ...CATEGORIES.map((c) => c.id)]);
+let validIds = new Set(['all']);
 
 function applyFilter(id) {
   const filter = validIds.has(id) ? id : 'all';
@@ -123,7 +129,28 @@ filterEl.addEventListener('click', (e) => {
 });
 
 window.addEventListener('hashchange', () => applyFilter(location.hash.slice(1)));
-applyFilter(location.hash.slice(1) || 'all');
+
+/* ---------- 시작 ---------- */
+
+async function initMenu() {
+  boardEl.setAttribute('aria-busy', 'true');
+  try {
+    const { groups, categories, source } = await window.loadMenu();
+    menuGroups = groups;
+    menuCats = categories;
+    boardEl.dataset.source = source;
+    validIds = new Set(['all', ...menuCats.map((c) => c.id)]);
+    renderMenu();
+    applyFilter(location.hash.slice(1) || 'all');
+  } catch (err) {
+    console.error('[menu] 메뉴를 불러오지 못했어요.', err);
+    boardEl.replaceChildren(el('p', { class: 'menu-board__error', text: '메뉴를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' }));
+  } finally {
+    boardEl.removeAttribute('aria-busy');
+  }
+}
+
+initMenu();
 
 /* ---------- 상세 보기 ---------- */
 
@@ -182,7 +209,7 @@ function openSheet(cat, item) {
 boardEl.addEventListener('click', (e) => {
   const btn = e.target.closest('.menu-item');
   if (!btn) return;
-  const cat = CATEGORIES.find((c) => c.id === btn.dataset.cat);
+  const cat = menuCats.find((c) => c.id === btn.dataset.cat);
   openSheet(cat, cat.items[Number(btn.dataset.idx)]);
 });
 
