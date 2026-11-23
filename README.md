@@ -73,7 +73,10 @@ npm run build
 │  └─ menu.css         메뉴 페이지
 ├─ js/
 │  ├─ app.js           홈 화면 동작 (슬라이드, 페이지 열기/닫기)
-│  ├─ login.js         로그인 페이지 동작 (이메일, 구글 로그인)
+│  ├─ login.js         로그인 페이지 동작 (이메일, 구글 로그인, 내 계정, 비밀번호 변경)
+│  ├─ account-view.js  내 계정에 보여 줄 가입 정보 정리
+│  ├─ auth-nav.js      모든 페이지 위쪽 메뉴: 로그인하면 "내 계정"으로 표시
+│  ├─ firebase.js      Firebase 연결 (로그인 페이지와 위쪽 메뉴가 같이 씀)
 │  ├─ firebase-config.js  Firebase 웹 앱 설정값 (로그인에 필요)
 │  ├─ menu-data.js     메뉴 데이터 (이름, 가격, 설명)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)

@@ -30,6 +30,8 @@
 }
 
 .auth-card[hidden],
+.auth-account[hidden],
+.account-note[hidden],
 .auth-form[hidden],
 .auth-alert[hidden],
 .auth-msg[hidden] {
@@ -268,6 +270,70 @@
   display: grid;
   gap: 10px;
   margin-top: 24px;
+}
+
+/* ---------- 내 계정: 가입 정보, 비밀번호 변경 ---------- */
+
+.auth-account {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-card__title {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.account-info {
+  margin: 0;
+}
+
+.account-info > div {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.account-info > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.account-info dt {
+  color: var(--paper-dim);
+}
+
+.account-info dd {
+  margin: 0;
+  word-break: break-all;
+}
+
+.account-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(246, 241, 234, 0.08);
+  font-size: 11px;
+  color: var(--paper-dim);
+  vertical-align: 0.1em;
+  word-break: keep-all;
+}
+
+.account-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--paper-dim);
+}
+
+.auth-account .auth-me__actions {
+  margin-top: 8px;
 }
 
 @media (max-width: 640px) {

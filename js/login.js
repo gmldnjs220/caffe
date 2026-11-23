@@ -1,10 +1,8 @@
 // 로그인 페이지: Firebase Authentication (이메일/비밀번호, 구글 계정)
-// - Firebase SDK는 인터넷(CDN)에서 불러옴. 버전을 올릴 때는 아래 두 주소의 숫자를 같이 바꿔 주세요
-// - 설정값은 js/firebase-config.js
+// - 로그인하면 같은 페이지가 "내 계정"으로 바뀜: 가입 정보, 비밀번호 변경, 로그아웃
+// - Firebase 연결은 js/firebase.js, 설정값은 js/firebase-config.js
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
-  getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -13,8 +11,12 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { firebaseConfig } from './firebase-config.js';
+import { getAuthOrNull } from './firebase.js';
+import { accountRows, displayName, hasPassword } from './account-view.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -26,6 +28,9 @@ const signedIn = $('.js-signed-in');
 const msg = $('.js-msg');
 const loginForm = $('.js-login-form');
 const signupForm = $('.js-signup-form');
+const passwordForm = $('.js-password-form');
+const passwordNote = $('.js-password-note');
+const pwMsg = $('.js-pw-msg');
 const tabs = [...document.querySelectorAll('.js-tab')];
 
 /* ---------- 안내 문구 ---------- */
@@ -46,6 +51,7 @@ const ERRORS = {
   'auth/network-request-failed': '인터넷 연결을 확인해 주세요.',
   'auth/popup-blocked': '팝업이 차단됐어요. 브라우저에서 팝업을 허용한 뒤 다시 눌러 주세요.',
   'auth/account-exists-with-different-credential': '이 이메일은 다른 방법으로 가입돼 있어요. 이메일과 비밀번호로 로그인해 주세요.',
+  'auth/requires-recent-login': '보안을 위해 다시 로그인한 뒤 바꿔 주세요.',
   // 아래는 사이트 설정 문제 (Firebase 콘솔에서 고쳐야 함)
   'auth/operation-not-allowed': '이 로그인 방법이 아직 켜져 있지 않아요. (관리자: Firebase 콘솔 → Authentication → 로그인 방법)',
   'auth/unauthorized-domain': '이 주소에서는 로그인할 수 없어요. (관리자: Firebase 콘솔 → Authentication → 설정 → 승인된 도메인)',
@@ -55,16 +61,14 @@ const ERRORS = {
 // 사용자가 직접 닫은 경우 등 안내가 필요 없는 오류
 const SILENT = new Set(['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled']);
 
-function show(text, type = 'error') {
-  msg.textContent = text;
-  msg.dataset.type = type;
-  msg.hidden = !text;
+function show(text, type = 'error', target = msg) {
+  target.textContent = text;
+  target.dataset.type = type;
+  target.hidden = !text;
 }
 
-function showError(err) {
-  if (SILENT.has(err.code)) return;
-  console.error(err);
-  show(ERRORS[err.code] || `로그인 중 문제가 생겼어요. 잠시 후 다시 해 주세요. (${err.code || err.message})`);
+function errorText(err) {
+  return ERRORS[err.code] || `문제가 생겼어요. 잠시 후 다시 해 주세요. (${err.code || err.message})`;
 }
 
 /* ---------- 탭: 로그인 / 회원가입 ---------- */
@@ -93,14 +97,17 @@ $('.auth-tabs').addEventListener('keydown', (e) => {
 
 /* ---------- 버튼 잠금 (요청 중 두 번 누르지 않게) ---------- */
 
-async function busy(task) {
+async function busy(task, msgTarget = msg) {
   const buttons = root.querySelectorAll('button');
   buttons.forEach((b) => { b.disabled = true; });
   root.setAttribute('aria-busy', 'true');
   try {
     await task();
   } catch (err) {
-    showError(err);
+    if (!SILENT.has(err.code)) {
+      console.error(err);
+      show(errorText(err), 'error', msgTarget);
+    }
   } finally {
     buttons.forEach((b) => { b.disabled = false; });
     root.setAttribute('aria-busy', 'false');
@@ -109,6 +116,37 @@ async function busy(task) {
 
 /* ---------- 로그인 상태 화면 ---------- */
 
+function renderAccount(user) {
+  const name = displayName(user);
+  title.textContent = '내 계정';
+  $('.js-me-avatar').textContent = name.trim().charAt(0).toUpperCase();
+  $('.js-me-name').textContent = `${name}님, 반가워요`;
+  $('.js-me-email').textContent = user.email || '';
+
+  // 가입 정보 목록
+  $('.js-account-info').replaceChildren(...accountRows(user).map((row) => {
+    const wrap = document.createElement('div');
+    const dt = document.createElement('dt');
+    dt.textContent = row.label;
+    const dd = document.createElement('dd');
+    dd.textContent = row.value;
+    if (row.note) {
+      const badge = document.createElement('span');
+      badge.className = 'account-badge';
+      badge.textContent = row.note;
+      dd.append(' ', badge);
+    }
+    wrap.append(dt, dd);
+    return wrap;
+  }));
+
+  // 비밀번호 변경: 이메일·비밀번호 계정만
+  const canChange = hasPassword(user);
+  passwordForm.hidden = !canChange;
+  passwordNote.hidden = canChange;
+  passwordForm.elements.username.value = user.email || '';
+}
+
 function render(user) {
   signedOut.hidden = Boolean(user);
   signedIn.hidden = !user;
@@ -116,38 +154,23 @@ function render(user) {
 
   if (!user) {
     selectTab(loginForm.hidden ? 'signup' : 'login', true); // "로그아웃했어요" 같은 안내는 남김
+    passwordForm.reset();
+    show('', 'error', pwMsg);
     return;
   }
-  const name = user.displayName || user.email.split('@')[0];
-  title.textContent = '내 계정';
-  $('.js-me-avatar').textContent = name.trim().charAt(0).toUpperCase();
-  $('.js-me-name').textContent = `${name}님, 반가워요`;
-  $('.js-me-email').textContent = user.email || '';
+  renderAccount(user);
   show('');
 }
 
 /* ---------- Firebase 연결 ---------- */
 
-// 1) js/firebase-config.js 값 → 2) Firebase Hosting이 주는 자동 설정 순서로 찾음
-async function loadConfig() {
-  if (firebaseConfig.apiKey) return firebaseConfig;
-  try {
-    const res = await fetch('/__/firebase/init.json');
-    if (res.ok) return await res.json();
-  } catch (err) { /* 로컬 개발 서버에는 이 주소가 없음 */ }
-  return null;
-}
-
 async function start() {
-  const config = await loadConfig();
-  if (!config || !config.apiKey) {
+  const auth = await getAuthOrNull();
+  if (!auth) {
     setupAlert.hidden = false;
     root.setAttribute('aria-busy', 'false');
     return;
   }
-
-  const auth = getAuth(initializeApp(config));
-  auth.languageCode = 'ko'; // 비밀번호 재설정 메일 등을 한국어로
 
   onAuthStateChanged(auth, render);
 
@@ -202,12 +225,58 @@ async function start() {
     busy(() => signInWithPopup(auth, new GoogleAuthProvider()));
   });
 
-  $('.js-logout').addEventListener('click', () => {
+  // 비밀번호 변경: 현재 비밀번호로 한 번 더 확인(재인증)한 뒤 바꿈
+  passwordForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const { current, next, next2 } = passwordForm.elements;
+    const say = (text, type = 'error') => show(text, type, pwMsg);
+
+    if (!current.value || !next.value) {
+      say('현재 비밀번호와 새 비밀번호를 입력해 주세요.');
+      return;
+    }
+    if (next.value.length < 6) {
+      say('새 비밀번호는 6자 이상이어야 해요.');
+      next.focus();
+      return;
+    }
+    if (next.value !== next2.value) {
+      say('새 비밀번호 확인이 일치하지 않아요.');
+      next2.focus();
+      return;
+    }
+    if (next.value === current.value) {
+      say('지금 쓰는 비밀번호와 다른 비밀번호로 정해 주세요.');
+      next.focus();
+      return;
+    }
+
+    busy(async () => {
+      const user = auth.currentUser;
+      try {
+        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, current.value));
+      } catch (err) {
+        // 재인증 단계에서 비밀번호가 틀리면 "이메일 또는…" 대신 현재 비밀번호 문제라고 알려 줌
+        if (['auth/invalid-credential', 'auth/wrong-password', 'auth/invalid-login-credentials'].includes(err.code)) {
+          say('현재 비밀번호가 맞지 않아요.');
+          current.focus();
+          return;
+        }
+        throw err;
+      }
+      await updatePassword(user, next.value);
+      passwordForm.reset();
+      passwordForm.elements.username.value = user.email || '';
+      say('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
+    }, pwMsg);
+  });
+
+  document.querySelectorAll('.js-logout').forEach((btn) => btn.addEventListener('click', () => {
     busy(async () => {
       await signOut(auth);
       show('로그아웃했어요.', 'info');
     });
-  });
+  }));
 }
 
 start();

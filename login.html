@@ -49,7 +49,7 @@
         <li><a href="menu.html">메뉴</a></li>
         <li><a href="notice.html">공지사항</a></li>
         <li><a href="location.html">오시는 길</a></li>
-        <li><a href="login.html" aria-current="page">로그인</a></li>
+        <li><a href="login.html" aria-current="page" data-auth-link data-label-in="내 계정">로그인</a></li>
       </ul>
     </nav>
   </header>
@@ -119,22 +119,61 @@
         </button>
       </section>
 
-      <!-- 로그인 후 -->
-      <section class="auth-card auth-me js-signed-in" hidden>
-        <div class="auth-me__avatar js-me-avatar" aria-hidden="true"></div>
-        <p class="auth-me__name js-me-name"></p>
-        <p class="auth-me__email js-me-email"></p>
+      <!-- 로그인 후: 내 계정 -->
+      <div class="auth-account js-signed-in" hidden>
+        <section class="auth-card auth-me">
+          <div class="auth-me__avatar js-me-avatar" aria-hidden="true"></div>
+          <p class="auth-me__name js-me-name"></p>
+          <p class="auth-me__email js-me-email"></p>
+        </section>
+
+        <section class="auth-card" aria-labelledby="info-title">
+          <h2 class="auth-card__title" id="info-title">가입 정보</h2>
+          <dl class="account-info js-account-info"></dl>
+        </section>
+
+        <section class="auth-card" aria-labelledby="pw-title">
+          <h2 class="auth-card__title" id="pw-title">비밀번호 변경</h2>
+
+          <form class="auth-form js-password-form" novalidate hidden>
+            <!-- 비밀번호 관리 프로그램이 어느 계정인지 알 수 있게 (화면에는 안 보임) -->
+            <input class="visually-hidden js-pw-username" type="email" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" readonly>
+            <div class="field">
+              <label class="field__label" for="pw-current">현재 비밀번호</label>
+              <input class="field__input" id="pw-current" name="current" type="password" autocomplete="current-password" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="pw-new">새 비밀번호</label>
+              <input class="field__input" id="pw-new" name="next" type="password" autocomplete="new-password" minlength="6" aria-describedby="pw-new-hint" required>
+              <p class="field__hint" id="pw-new-hint">6자 이상</p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="pw-new2">새 비밀번호 확인</label>
+              <input class="field__input" id="pw-new2" name="next2" type="password" autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="auth-btn auth-btn--primary">비밀번호 바꾸기</button>
+          </form>
+
+          <!-- 구글 계정으로만 가입한 경우 -->
+          <p class="account-note js-password-note" hidden>
+            구글 계정으로 가입하셔서 원보틀 비밀번호가 따로 없어요. 비밀번호는 구글 계정에서 관리돼요.
+          </p>
+
+          <p class="auth-msg js-pw-msg" role="status" aria-live="polite" hidden></p>
+        </section>
+
         <div class="auth-me__actions">
           <a class="auth-btn auth-btn--primary" href="menu.html">메뉴 보러 가기</a>
           <button type="button" class="auth-btn js-logout">로그아웃</button>
         </div>
-      </section>
+      </div>
 
       <p class="auth-msg js-msg" role="status" aria-live="polite" hidden></p>
     </div>
   </main>
 
   <script type="module" src="js/login.js"></script>
+  <script type="module" src="js/auth-nav.js"></script>
 
 </body>
 
