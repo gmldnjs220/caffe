@@ -2,18 +2,22 @@
 // 다른 스크립트에서는 window.sb 로 사용해요. 연결 정보가 없으면 window.sb 는 null 이에요.
 
 (function () {
+  // 메뉴 읽기(menu-api.js)가 연결이 끝났는지 알 수 있게 알려 줌
+  const ready = () => window.dispatchEvent(new Event('sb-ready'));
   const config = window.SUPABASE_CONFIG || {};
   const hasConfig = Boolean(config.url && config.key);
 
   if (!hasConfig) {
     console.info('[supabase] supabase-config.js 에 url/key 가 없어서 연결하지 않았어요.');
     window.sb = null;
+    ready();
     return;
   }
 
   if (!window.supabase || typeof window.supabase.createClient !== 'function') {
     console.warn('[supabase] supabase-js 라이브러리를 불러오지 못했어요.');
     window.sb = null;
+    ready();
     return;
   }
 
@@ -38,4 +42,5 @@
   window.sb = window.supabase.createClient(config.url, config.key, {
     auth: { persistSession: true, autoRefreshToken: true, storage },
   });
+  ready();
 }());

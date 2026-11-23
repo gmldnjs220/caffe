@@ -87,16 +87,51 @@
     return { groups: GROUPS, categories: CATEGORIES, source: 'menu-data.js' };
   }
 
+  // 마지막으로 Supabase에서 받은 메뉴를 브라우저에 저장해 두고, 다음에 열 때 먼저 보여 줘요
+  const CACHE_KEY = 'onebottle-menu-cache-v1';
+
+  function readCache() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (saved && saved.categories && saved.categories.length) return { ...saved, source: 'cache' };
+    } catch (err) { /* 저장된 값이 없거나 깨졌으면 무시 */ }
+    return null;
+  }
+
+  function writeCache(result) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ groups: result.groups, categories: result.categories }));
+    } catch (err) { /* 저장이 막힌 브라우저에서도 화면은 그대로 동작 */ }
+  }
+
+  // supabase-client.js 가 window.sb 를 만들 때까지 기다림 (라이브러리를 못 불러와도 페이지 load 때는 넘어감)
+  function whenSupabaseReady() {
+    if ('sb' in window) return Promise.resolve();
+    return new Promise((resolve) => {
+      window.addEventListener('sb-ready', resolve, { once: true });
+      window.addEventListener('load', resolve, { once: true });
+    });
+  }
+
+  // 1단계: 기다리지 않고 바로 보여 줄 메뉴 (지난번 DB 메뉴 → 없으면 menu-data.js)
+  window.loadMenuQuick = function loadMenuQuick() {
+    return readCache() || fromLocalFile();
+  };
+
+  // 2단계: Supabase에서 최신 메뉴 읽기. 못 읽으면 null
   window.loadMenu = async function loadMenu() {
-    if (window.sb) {
-      try {
-        const result = await fromSupabase();
-        if (result.categories.length) return result;
-        console.warn('[menu] Supabase에 메뉴가 없어서 menu-data.js 를 사용해요.');
-      } catch (err) {
-        console.warn('[menu] Supabase에서 메뉴를 읽지 못해서 menu-data.js 를 사용해요.', err);
+    await whenSupabaseReady();
+    if (!window.sb) return null;
+    try {
+      const result = await fromSupabase();
+      if (result.categories.length) {
+        writeCache(result);
+        return result;
       }
+      console.warn('[menu] Supabase에 메뉴가 없어서 지금 메뉴를 그대로 써요.');
+    } catch (err) {
+      console.warn('[menu] Supabase에서 메뉴를 읽지 못해서 지금 메뉴를 그대로 써요.', err);
     }
-    return fromLocalFile();
+    return null;
   };
 }());
