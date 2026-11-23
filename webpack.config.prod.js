@@ -16,6 +16,11 @@ module.exports = merge(common, {
       filename: `${page}.html`,
       inject: false,
     })),
+    new HtmlWebpackPlugin({
+      template: './login.html',
+      filename: 'login.html',
+      inject: false,
+    }),
     new CopyPlugin({
       patterns: [
         { from: 'img', to: 'img' },
@@ -29,6 +34,8 @@ module.exports = merge(common, {
         { from: 'icon.png', to: 'icon.png' },
         { from: '404.html', to: '404.html' },
         { from: 'site.webmanifest', to: 'site.webmanifest' },
+        { from: 'js/login.js', to: 'js/login.js' },
+        { from: 'js/firebase-config.js', to: 'js/firebase-config.js' },
       ],
     }),
   ],

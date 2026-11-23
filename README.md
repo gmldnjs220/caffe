@@ -62,15 +62,19 @@ npm run build
 ├─ menu.html           메뉴
 ├─ notice.html         공지사항
 ├─ location.html       오시는 길
+├─ login.html          로그인 / 회원가입 (Firebase Authentication)
 ├─ 404.html            없는 페이지 안내
 ├─ css/
 │  ├─ style.css        기본 초기화 스타일
 │  ├─ main.css         모든 페이지 공통 (색, 글꼴, 머리글, 페이지 폭)
 │  ├─ home.css         홈 화면 (사이드바, 블러, 슬라이드)
+│  ├─ login.css        로그인 페이지
 │  ├─ pages.css        소개, 공지사항, 오시는 길
 │  └─ menu.css         메뉴 페이지
 ├─ js/
 │  ├─ app.js           홈 화면 동작 (슬라이드, 페이지 열기/닫기)
+│  ├─ login.js         로그인 페이지 동작 (이메일, 구글 로그인)
+│  ├─ firebase-config.js  Firebase 웹 앱 설정값 (로그인에 필요)
 │  ├─ menu-data.js     메뉴 데이터 (이름, 가격, 설명)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)
 │  └─ notice.js        공지사항 열기/닫기 애니메이션
@@ -122,6 +126,21 @@ npm run build
 - **줄바꿈 형식**: 파일은 Windows 줄바꿈(CRLF)으로 저장되어 있습니다. `.gitattributes`가 git에서 알아서 맞춰 주니 따로 설정하지 않아도 됩니다.
 - **빌드에 새 JS 파일을 추가했다면** `webpack.config.prod.js`의 `CopyPlugin` 목록에도 추가해야 `dist/`에 복사됩니다. `css/`와 `img/` 폴더는 통째로 복사되므로 따로 적지 않아도 됩니다.
 - **공유 미리보기(og:image)**: 도메인이 정해지면 각 HTML의 `og:image`를 `https://도메인/img/og-image.jpg` 같은 절대 주소로 바꾸고 `og:url`을 추가해 주세요.
+
+---
+
+## 로그인 (Firebase Authentication) 설정
+
+`login.html`은 Firebase Authentication으로 이메일/비밀번호와 구글 계정 로그인을 처리합니다. Firebase 콘솔(https://console.firebase.google.com)의 `caffe-onebottle` 프로젝트에서 **처음 한 번만** 아래를 설정해야 동작합니다.
+
+1. **Authentication → 시작하기**를 누릅니다.
+2. **Authentication → 로그인 방법**에서 `이메일/비밀번호`와 `Google`을 **사용 설정**합니다. (Google은 프로젝트 지원 이메일을 고르라고 나옵니다)
+3. **프로젝트 설정(톱니바퀴) → 일반 → 내 앱**에 웹 앱(`</>`)이 없으면 하나 등록합니다.
+4. 로컬(`npm start`)에서도 로그인을 시험하려면, 같은 화면의 **SDK 설정 및 구성 → 구성** 값을 `js/firebase-config.js`에 붙여 넣습니다. 이 값은 비밀번호가 아니라서 저장소에 올려도 됩니다.
+   - 비워 두면 Firebase Hosting에 배포된 사이트(PR 미리보기 포함)에서만 설정을 자동으로 불러옵니다.
+5. 로그인이 "이 주소에서는 로그인할 수 없어요"라고 나오면 **Authentication → 설정 → 승인된 도메인**에 그 주소를 추가합니다. (`localhost`와 `*.web.app`, `*.firebaseapp.com`은 기본으로 들어 있음. PR 미리보기 주소도 `web.app`이라 보통은 그대로 됩니다)
+
+가입한 회원 목록은 Firebase 콘솔의 **Authentication → 사용자**에서 볼 수 있습니다.
 
 ---
 
