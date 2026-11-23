@@ -88,7 +88,13 @@
     </div>
   </dialog>
 
+  <!-- Supabase: 라이브러리 → 연결 정보 → 클라이언트 → 메뉴 읽기 순서로 실행 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script defer src="js/supabase-config.js"></script>
+  <script defer src="js/supabase-client.js"></script>
+  <!-- Supabase에 연결할 수 없을 때 쓰는 예비 메뉴 데이터 -->
   <script defer src="js/menu-data.js"></script>
+  <script defer src="js/menu-api.js"></script>
   <script defer src="js/menu.js"></script>
 
 </body>
