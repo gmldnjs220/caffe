@@ -11,7 +11,7 @@ module.exports = merge(common, {
       template: './index.html',
       inject: false,
     }),
-    ...['menu', 'about', 'notice', 'location'].map((page) => new HtmlWebpackPlugin({
+    ...['menu', 'order', 'about', 'notice', 'location'].map((page) => new HtmlWebpackPlugin({
       template: `./${page}.html`,
       filename: `${page}.html`,
       inject: false,
@@ -22,6 +22,7 @@ module.exports = merge(common, {
         { from: 'css', to: 'css' },
         { from: 'js/menu-data.js', to: 'js/menu-data.js' },
         { from: 'js/menu.js', to: 'js/menu.js' },
+        { from: 'js/order.js', to: 'js/order.js' },
         { from: 'js/notice.js', to: 'js/notice.js' },
         { from: 'icon.svg', to: 'icon.svg' },
         { from: 'favicon.ico', to: 'favicon.ico' },

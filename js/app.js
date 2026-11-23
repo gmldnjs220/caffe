@@ -25,7 +25,7 @@
   const sidebar = document.querySelector('.js-sidebar');
   if (!layer || !frame || !sidebar) return;
 
-  const PAGES = ['about', 'notice', 'location', 'menu'];
+  const PAGES = ['about', 'notice', 'location', 'menu', 'order'];
   const pageOf = (href) => (href || '').split('#')[0].replace('.html', '');
   const isPage = (href) => PAGES.includes(pageOf(href));
   let current = null;
@@ -97,7 +97,7 @@
 
   frame.addEventListener('load', () => layer.classList.remove('is-swapping'));
 
-  // 사이드바 안의 about / notice / location / menu 링크는 메인 안에서 열기
+  // 사이드바 안의 about / notice / location / menu / order 링크는 메인 안에서 열기
   sidebar.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
     if (!a) return;

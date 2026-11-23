@@ -60,6 +60,7 @@ npm run build
 ├─ index.html          홈 (사진 슬라이드 + 왼쪽 사이드바)
 ├─ about.html          소개
 ├─ menu.html           메뉴
+├─ order.html          주문 (메뉴 고르기 + 장바구니)
 ├─ notice.html         공지사항
 ├─ location.html       오시는 길
 ├─ 404.html            없는 페이지 안내
@@ -68,11 +69,13 @@ npm run build
 │  ├─ main.css         모든 페이지 공통 (색, 글꼴, 머리글, 페이지 폭)
 │  ├─ home.css         홈 화면 (사이드바, 블러, 슬라이드)
 │  ├─ pages.css        소개, 공지사항, 오시는 길
-│  └─ menu.css         메뉴 페이지
+│  ├─ menu.css         메뉴 페이지
+│  └─ order.css        주문 페이지 (버튼, 팝업 모양은 menu.css를 같이 씀)
 ├─ js/
 │  ├─ app.js           홈 화면 동작 (슬라이드, 페이지 열기/닫기)
 │  ├─ menu-data.js     메뉴 데이터 (이름, 가격, 설명)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)
+│  ├─ order.js         주문 페이지 동작 (옵션 고르기, 장바구니)
 │  └─ notice.js        공지사항 열기/닫기 애니메이션
 ├─ img/
 │  ├─ logo-white.png           사이드바 로고

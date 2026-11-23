@@ -1,0 +1,367 @@
+// 주문 페이지: 메뉴 고르기 + 장바구니 (menu-data.js 다음에 실행)
+// - 가격은 menu-data.js의 1,000원 단위 값을 원 단위 정수로 바꿔서 계산함 (소수점 오차 방지)
+// - 장바구니는 이 브라우저에만 저장됨(localStorage). 다른 기기와는 공유되지 않음
+
+const filterEl = document.querySelector('.js-filter');
+const gridEl = document.querySelector('.js-grid');
+
+const toWon = (p) => Math.round(p * 1000);
+const won = (n) => `${n.toLocaleString('ko-KR')}원`;
+const MAX_QTY = 20;
+const STORE_KEY = 'onebottle-cart';
+
+const TEMP_TEXT = { hot: 'HOT', ice: 'ICE' };
+
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  Object.entries(props).forEach(([key, value]) => {
+    if (value == null || value === false) return;
+    if (key === 'class') node.className = value;
+    else if (key === 'text') node.textContent = value;
+    else if (key.startsWith('data-') || key.startsWith('aria-') || ['type', 'name', 'value', 'for', 'id'].includes(key)) node.setAttribute(key, value);
+    else node[key] = value;
+  });
+  [].concat(children).forEach((child) => child && node.append(child));
+  return node;
+}
+
+// X 모양 아이콘 (svg는 createElementNS로 만들어야 그려짐)
+function closeIcon() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = '<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
+  return svg;
+}
+
+const findCat = (id) => CATEGORIES.find((c) => c.id === id);
+const findItem = (cat, name) => cat && cat.items.find((i) => i.name === name);
+const tempOf = (cat, item) => ('temp' in item ? item.temp : cat.temp);
+
+// 옵션 조합까지 반영한 한 잔(한 개) 가격
+function unitPrice(item, choice) {
+  const base = item.variants
+    ? toWon((item.variants.find((v) => v.label === choice.variant) || item.variants[0]).price)
+    : toWon(item.price);
+  const extra = (item.options || [])
+    .filter((o) => choice.options.includes(o.label))
+    .reduce((sum, o) => sum + toWon(o.price), 0);
+  return base + extra;
+}
+
+function choiceText(choice) {
+  return [choice.temp && TEMP_TEXT[choice.temp], choice.variant, ...choice.options].filter(Boolean).join(' · ');
+}
+
+/* ---------- 카테고리 선택(셀렉트) + 메뉴 목록 ---------- */
+
+filterEl.append(el('option', { value: 'all', text: '전체 메뉴' }));
+GROUPS.forEach((group) => {
+  filterEl.append(el('optgroup', { label: group.ko }, CATEGORIES
+    .filter((c) => c.group === group.id)
+    .map((c) => el('option', { value: c.id, text: `${c.ko} (${c.items.length})` }))));
+});
+
+CATEGORIES.forEach((cat) => {
+  const list = el('ul', { class: 'order-grid__list' });
+  cat.items.forEach((item) => {
+    const price = item.variants
+      ? `${won(Math.min(...item.variants.map((v) => toWon(v.price))))}~`
+      : won(toWon(item.price));
+    list.append(el('li', {}, el('button', {
+      type: 'button', class: 'order-item', 'data-cat': cat.id, 'data-name': item.name, 'aria-haspopup': 'dialog',
+    }, [
+      el('span', { class: 'order-item__name', text: item.name }),
+      el('span', { class: 'order-item__price', text: price }),
+      el('span', { class: 'order-item__add', 'aria-hidden': 'true', text: '+' }),
+    ])));
+  });
+
+  gridEl.append(el('section', { class: 'order-cat', 'data-cat': cat.id, 'aria-labelledby': `ocat-${cat.id}` }, [
+    el('h2', { class: 'order-cat__title', id: `ocat-${cat.id}` }, [
+      el('span', { class: 'order-cat__en', text: cat.en }),
+      el('span', { class: 'order-cat__ko', text: cat.ko }),
+      cat.note ? el('span', { class: 'order-cat__note', text: cat.note }) : null,
+    ]),
+    list,
+  ]));
+});
+
+const validIds = new Set(['all', ...CATEGORIES.map((c) => c.id)]);
+
+function applyFilter(id) {
+  const filter = validIds.has(id) ? id : 'all';
+  filterEl.value = filter;
+  gridEl.querySelectorAll('.order-cat').forEach((sec) => {
+    sec.hidden = filter !== 'all' && sec.dataset.cat !== filter;
+  });
+  const hash = filter === 'all' ? '' : `#${filter}`;
+  if (location.hash !== hash) history.replaceState(null, '', hash || location.href.split('#')[0]);
+}
+
+filterEl.addEventListener('change', () => applyFilter(filterEl.value));
+window.addEventListener('hashchange', () => applyFilter(location.hash.slice(1)));
+applyFilter(location.hash.slice(1) || 'all');
+
+/* ---------- 장바구니 데이터 ---------- */
+
+// 한 줄 = { catId, name, temp, variant, options: [], qty }
+let cart = [];
+
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(cart));
+  } catch (err) { /* 개인정보 보호 모드 등에서는 저장 없이 동작 */ }
+}
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+    // 메뉴가 바뀌어 없어진 항목은 버림
+    cart = Array.isArray(saved)
+      ? saved.filter((line) => findItem(findCat(line.catId), line.name) && line.qty > 0)
+      : [];
+  } catch (err) {
+    cart = [];
+  }
+}
+
+const sameChoice = (a, b) => a.catId === b.catId && a.name === b.name && a.temp === b.temp
+  && a.variant === b.variant && a.options.join('|') === b.options.join('|');
+
+function addToCart(line) {
+  const found = cart.find((l) => sameChoice(l, line));
+  if (found) found.qty = Math.min(MAX_QTY, found.qty + line.qty);
+  else cart.push(line);
+  save();
+  renderCart();
+}
+
+function lineTotal(line) {
+  const item = findItem(findCat(line.catId), line.name);
+  return unitPrice(item, line) * line.qty;
+}
+
+/* ---------- 장바구니 화면 ---------- */
+
+const cartEl = document.querySelector('.js-cart');
+const cartList = document.querySelector('.js-cart-list');
+const cartEmpty = document.querySelector('.js-cart-empty');
+const cartCount = document.querySelector('.js-cart-count');
+const cartTotal = document.querySelector('.js-cart-total');
+const cartSubmit = document.querySelector('.js-cart-submit');
+const cartClear = document.querySelector('.js-cart-clear');
+const bar = document.querySelector('.js-cart-bar');
+const barCount = document.querySelector('.js-bar-count');
+const barTotal = document.querySelector('.js-bar-total');
+const dim = document.querySelector('.js-cart-dim');
+
+function renderCart() {
+  const count = cart.reduce((n, l) => n + l.qty, 0);
+  const total = cart.reduce((n, l) => n + lineTotal(l), 0);
+
+  cartList.replaceChildren(...cart.map((line, i) => el('li', { class: 'cart-line' }, [
+    el('div', { class: 'cart-line__info' }, [
+      el('span', { class: 'cart-line__name', text: line.name }),
+      choiceText(line) ? el('span', { class: 'cart-line__opt', text: choiceText(line) }) : null,
+    ]),
+    el('button', { type: 'button', class: 'cart-line__remove', 'data-remove': String(i), 'aria-label': `${line.name} 빼기` }, closeIcon()),
+    el('div', { class: 'stepper stepper--sm' }, [
+      el('button', { type: 'button', class: 'stepper__btn', 'data-dec': String(i), 'aria-label': `${line.name} 하나 줄이기`, text: '−' }),
+      el('span', { class: 'stepper__value', text: String(line.qty) }),
+      el('button', { type: 'button', class: 'stepper__btn', 'data-inc': String(i), 'aria-label': `${line.name} 하나 늘리기`, text: '+', disabled: line.qty >= MAX_QTY }),
+    ]),
+    el('strong', { class: 'cart-line__price', text: won(lineTotal(line)) }),
+  ])));
+
+  cartEmpty.hidden = cart.length > 0;
+  cartClear.hidden = cart.length === 0;
+  cartCount.textContent = String(count);
+  cartTotal.textContent = won(total);
+  cartSubmit.disabled = cart.length === 0;
+
+  bar.hidden = cart.length === 0;
+  barCount.textContent = String(count);
+  barTotal.textContent = won(total);
+  if (cart.length === 0) setCartOpen(false);
+}
+
+cartList.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const { inc, dec, remove } = btn.dataset;
+  if (inc != null) cart[inc].qty = Math.min(MAX_QTY, cart[inc].qty + 1);
+  if (dec != null) {
+    cart[dec].qty -= 1;
+    if (cart[dec].qty <= 0) cart.splice(dec, 1);
+  }
+  if (remove != null) cart.splice(remove, 1);
+  save();
+  renderCart();
+});
+
+cartClear.addEventListener('click', () => {
+  if (!window.confirm('장바구니를 모두 비울까요?')) return;
+  cart = [];
+  save();
+  renderCart();
+});
+
+// 휴대폰: 아래에서 올라오는 장바구니
+function setCartOpen(open) {
+  cartEl.classList.toggle('is-open', open);
+  dim.hidden = !open;
+  bar.setAttribute('aria-expanded', String(open));
+  document.documentElement.classList.toggle('is-cart-open', open);
+}
+
+bar.addEventListener('click', () => setCartOpen(true));
+dim.addEventListener('click', () => setCartOpen(false));
+document.querySelector('.js-cart-close').addEventListener('click', () => setCartOpen(false));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && cartEl.classList.contains('is-open')) setCartOpen(false);
+});
+
+/* ---------- 옵션 고르기 ---------- */
+
+const pick = document.querySelector('.js-pick');
+const pickCat = pick.querySelector('.js-pick-cat');
+const pickTitle = pick.querySelector('#pick-title');
+const pickDesc = pick.querySelector('.js-pick-desc');
+const pickFields = pick.querySelector('.js-pick-fields');
+const pickQty = pick.querySelector('.js-qty');
+const pickTotal = pick.querySelector('.js-pick-total');
+const qtyMinus = pick.querySelector('.js-qty-minus');
+const qtyPlus = pick.querySelector('.js-qty-plus');
+
+let picking = null; // { cat, item, choice, qty }
+
+function radioGroup(title, name, values, checked, render = (v) => v) {
+  return el('fieldset', { class: 'pick__group' }, [
+    el('legend', { class: 'pick__label', text: title }),
+    el('div', { class: 'pick__choices' }, values.map((v) => el('label', { class: 'choice' }, [
+      el('input', { type: 'radio', name, value: v.value, checked: v.value === checked }),
+      el('span', { class: 'choice__box' }, render(v)),
+    ]))),
+  ]);
+}
+
+function updatePickTotal() {
+  pickQty.textContent = String(picking.qty);
+  qtyMinus.disabled = picking.qty <= 1;
+  qtyPlus.disabled = picking.qty >= MAX_QTY;
+  pickTotal.textContent = won(unitPrice(picking.item, picking.choice) * picking.qty);
+}
+
+function openPick(cat, item) {
+  const temp = tempOf(cat, item);
+  const choice = {
+    temp: temp === 'both' ? 'ice' : (temp || null),
+    variant: item.variants ? item.variants[0].label : null,
+    options: [],
+  };
+  picking = { cat, item, choice, qty: 1 };
+
+  pickCat.textContent = `${cat.en} · ${cat.ko}`;
+  pickTitle.textContent = item.name;
+  pickDesc.textContent = item.desc;
+
+  const fields = [];
+  if (temp === 'both') {
+    fields.push(radioGroup('온도', 'temp', [
+      { value: 'hot', label: 'HOT' }, { value: 'ice', label: 'ICE' },
+    ], choice.temp, (v) => el('span', { class: `choice__temp choice__temp--${v.value}`, text: v.label })));
+  } else if (temp) {
+    fields.push(el('p', { class: 'pick__fixed' }, el('span', { class: `tag tag--${temp}`, text: `${TEMP_TEXT[temp]} ONLY` })));
+  }
+  if (item.variants) {
+    fields.push(radioGroup('종류', 'variant', item.variants.map((v) => ({ value: v.label, price: v.price })), choice.variant,
+      (v) => [el('span', { text: v.value }), el('span', { class: 'choice__price', text: won(toWon(v.price)) })]));
+  }
+  if (item.options) {
+    fields.push(el('fieldset', { class: 'pick__group' }, [
+      el('legend', { class: 'pick__label', text: '추가 옵션' }),
+      el('div', { class: 'pick__choices pick__choices--stack' }, item.options.map((o) => el('label', { class: 'choice' }, [
+        el('input', { type: 'checkbox', name: 'option', value: o.label }),
+        el('span', { class: 'choice__box' }, [
+          el('span', { text: o.label }),
+          el('span', { class: 'choice__price', text: `+${won(toWon(o.price))}` }),
+        ]),
+      ]))),
+    ]));
+  }
+  pickFields.replaceChildren(...fields);
+  pickFields.hidden = fields.length === 0;
+
+  updatePickTotal();
+  pick.showModal();
+}
+
+pickFields.addEventListener('change', (e) => {
+  const input = e.target;
+  if (input.name === 'temp') picking.choice.temp = input.value;
+  if (input.name === 'variant') picking.choice.variant = input.value;
+  if (input.name === 'option') {
+    // 메뉴 데이터에 적힌 순서대로 정리해서 같은 조합이면 장바구니에서 한 줄로 합쳐지게 함
+    const on = new Set([...pickFields.querySelectorAll('input[name="option"]:checked')].map((i) => i.value));
+    picking.choice.options = picking.item.options.map((o) => o.label).filter((l) => on.has(l));
+  }
+  updatePickTotal();
+});
+
+qtyMinus.addEventListener('click', () => { picking.qty = Math.max(1, picking.qty - 1); updatePickTotal(); });
+qtyPlus.addEventListener('click', () => { picking.qty = Math.min(MAX_QTY, picking.qty + 1); updatePickTotal(); });
+
+pick.querySelector('.js-pick-add').addEventListener('click', () => {
+  addToCart({ catId: picking.cat.id, name: picking.item.name, ...picking.choice, qty: picking.qty });
+  pick.close();
+  const toast = document.querySelector('.js-toast') || document.body.appendChild(el('div', { class: 'toast js-toast', role: 'status' }));
+  toast.textContent = `${picking.item.name} ${picking.qty}개를 담았어요`;
+  toast.classList.remove('is-show');
+  void toast.offsetWidth;
+  toast.classList.add('is-show');
+});
+
+pick.querySelector('.js-pick-close').addEventListener('click', () => pick.close());
+pick.addEventListener('click', (e) => { if (e.target === pick) pick.close(); });
+
+gridEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.order-item');
+  if (!btn) return;
+  const cat = findCat(btn.dataset.cat);
+  openPick(cat, findItem(cat, btn.dataset.name));
+});
+
+/* ---------- 주문 내역 확인 ---------- */
+
+const confirmDlg = document.querySelector('.js-confirm');
+const confirmList = confirmDlg.querySelector('.js-confirm-list');
+const confirmTotal = confirmDlg.querySelector('.js-confirm-total');
+
+cartSubmit.addEventListener('click', () => {
+  confirmList.replaceChildren(...cart.map((line) => el('li', {}, [
+    el('div', {}, [
+      el('span', { class: 'cart-line__name', text: `${line.name} × ${line.qty}` }),
+      choiceText(line) ? el('span', { class: 'cart-line__opt', text: choiceText(line) }) : null,
+    ]),
+    el('strong', { text: won(lineTotal(line)) }),
+  ])));
+  confirmTotal.textContent = won(cart.reduce((n, l) => n + lineTotal(l), 0));
+  setCartOpen(false);
+  confirmDlg.showModal();
+});
+
+confirmDlg.querySelector('.js-confirm-close').addEventListener('click', () => confirmDlg.close());
+confirmDlg.querySelector('.js-confirm-back').addEventListener('click', () => confirmDlg.close());
+confirmDlg.querySelector('.js-confirm-done').addEventListener('click', () => {
+  cart = [];
+  save();
+  renderCart();
+  confirmDlg.close();
+});
+confirmDlg.addEventListener('click', (e) => { if (e.target === confirmDlg) confirmDlg.close(); });
+
+load();
+renderCart();
