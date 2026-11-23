@@ -14,6 +14,11 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  reauthenticateWithPopup,
+  deleteUser,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getAuthOrNull } from './firebase.js';
 import { accountRows, displayName, hasPassword } from './account-view.js';
@@ -31,7 +36,61 @@ const signupForm = $('.js-signup-form');
 const passwordForm = $('.js-password-form');
 const passwordNote = $('.js-password-note');
 const pwMsg = $('.js-pw-msg');
+const deleteBox = $('.js-delete-box');
+const deleteForm = $('.js-delete-form');
+const deleteMsg = $('.js-delete-msg');
 const tabs = [...document.querySelectorAll('.js-tab')];
+const keepBoxes = [...document.querySelectorAll('.js-keep')];
+
+/* ---------- 로그인 상태 유지 ---------- */
+// 체크: 브라우저를 닫았다 열어도 로그인 유지 / 해제: 브라우저(탭)를 닫으면 로그아웃
+// 로그인 탭과 회원가입 탭의 체크박스는 서로 같은 값으로 맞춰지고, 마지막 선택을 기억함
+
+const KEEP_KEY = 'onebottle-keep-signed-in';
+
+function readKeep() {
+  try { return localStorage.getItem(KEEP_KEY) !== '0'; } catch (err) { return true; }
+}
+
+function setKeep(on) {
+  keepBoxes.forEach((box) => { box.checked = on; });
+  try { localStorage.setItem(KEEP_KEY, on ? '1' : '0'); } catch (err) { /* 저장이 막혀도 체크 상태로 동작 */ }
+}
+
+setKeep(readKeep());
+keepBoxes.forEach((box) => box.addEventListener('change', () => setKeep(box.checked)));
+
+const persistence = () => (keepBoxes[0] && !keepBoxes[0].checked ? browserSessionPersistence : browserLocalPersistence);
+
+/* ---------- 비밀번호 보기 버튼 ---------- */
+// 모든 비밀번호 칸 오른쪽에 "보기" 버튼을 붙임. 누르면 입력한 글자가 그대로 보임
+
+function setVisible(input, btn, visible) {
+  input.type = visible ? 'text' : 'password';
+  btn.textContent = visible ? '숨기기' : '보기';
+  btn.setAttribute('aria-pressed', String(visible));
+  btn.setAttribute('aria-label', visible ? '비밀번호 숨기기' : '비밀번호 보기');
+}
+
+document.querySelectorAll('.auth input[type="password"]').forEach((input) => {
+  const wrap = document.createElement('div');
+  wrap.className = 'field__control';
+  input.replaceWith(wrap);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'field__reveal';
+  btn.setAttribute('aria-controls', input.id);
+  wrap.append(input, btn);
+  setVisible(input, btn, false);
+
+  btn.addEventListener('click', () => {
+    setVisible(input, btn, input.type === 'password');
+    input.focus();
+  });
+  // 폼을 비우거나 보내면 다시 가림 (비밀번호가 화면에 남지 않게)
+  input.form.addEventListener('reset', () => setVisible(input, btn, false));
+  input.form.addEventListener('submit', () => setVisible(input, btn, false));
+});
 
 /* ---------- 안내 문구 ---------- */
 
@@ -145,6 +204,10 @@ function renderAccount(user) {
   passwordForm.hidden = !canChange;
   passwordNote.hidden = canChange;
   passwordForm.elements.username.value = user.email || '';
+
+  // 회원 탈퇴 본인 확인: 비밀번호가 있으면 비밀번호, 구글로만 가입했으면 구글 확인 창
+  $('.js-delete-password-field').hidden = !canChange;
+  $('.js-delete-google-note').hidden = canChange;
 }
 
 function render(user) {
@@ -156,6 +219,9 @@ function render(user) {
     selectTab(loginForm.hidden ? 'signup' : 'login', true); // "로그아웃했어요" 같은 안내는 남김
     passwordForm.reset();
     show('', 'error', pwMsg);
+    deleteForm.reset();
+    deleteBox.open = false;
+    show('', 'error', deleteMsg);
     return;
   }
   renderAccount(user);
@@ -181,7 +247,10 @@ async function start() {
       show('이메일과 비밀번호를 입력해 주세요.');
       return;
     }
-    busy(() => signInWithEmailAndPassword(auth, email.value.trim(), password.value));
+    busy(async () => {
+      await setPersistence(auth, persistence());
+      await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
+    });
   });
 
   signupForm.addEventListener('submit', (e) => {
@@ -201,6 +270,7 @@ async function start() {
       return;
     }
     busy(async () => {
+      await setPersistence(auth, persistence());
       const { user } = await createUserWithEmailAndPassword(auth, email.value.trim(), password.value);
       await updateProfile(user, { displayName: name.value.trim() });
       render(auth.currentUser); // 이름이 반영된 상태로 다시 그림
@@ -222,7 +292,11 @@ async function start() {
   });
 
   $('.js-google').addEventListener('click', () => {
-    busy(() => signInWithPopup(auth, new GoogleAuthProvider()));
+    // 팝업은 버튼을 누른 직후에 열어야 차단되지 않아서, 유지 방식 설정과 팝업 열기를 함께 시작함
+    busy(() => Promise.all([
+      setPersistence(auth, persistence()),
+      signInWithPopup(auth, new GoogleAuthProvider()),
+    ]));
   });
 
   // 비밀번호 변경: 현재 비밀번호로 한 번 더 확인(재인증)한 뒤 바꿈
@@ -269,6 +343,51 @@ async function start() {
       passwordForm.elements.username.value = user.email || '';
       say('비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.', 'info');
     }, pwMsg);
+  });
+
+  // 회원 탈퇴: 본인 확인(재인증) → 계정 삭제. 삭제되면 자동으로 로그아웃 화면으로 바뀜
+  deleteForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const { password, agree } = deleteForm.elements;
+    const say = (text, type = 'error') => show(text, type, deleteMsg);
+    const user = auth.currentUser;
+    if (!user) return;
+    const usePassword = hasPassword(user);
+
+    if (usePassword && !password.value) {
+      say('본인 확인을 위해 비밀번호를 입력해 주세요.');
+      password.focus();
+      return;
+    }
+    if (!agree.checked) {
+      say('탈퇴 안내를 확인했다는 칸에 체크해 주세요.');
+      agree.focus();
+      return;
+    }
+
+    busy(async () => {
+      try {
+        if (usePassword) {
+          await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password.value));
+        } else {
+          await reauthenticateWithPopup(user, new GoogleAuthProvider());
+        }
+      } catch (err) {
+        if (['auth/invalid-credential', 'auth/wrong-password', 'auth/invalid-login-credentials'].includes(err.code)) {
+          say('비밀번호가 맞지 않아요.');
+          password.focus();
+          return;
+        }
+        if (err.code === 'auth/user-mismatch') {
+          say('지금 로그인한 계정과 다른 구글 계정을 고르셨어요. 같은 계정으로 확인해 주세요.');
+          return;
+        }
+        throw err;
+      }
+      await deleteUser(user);
+      // 계정이 지워지면 로그인 화면으로 바뀌고, 이 안내가 그 화면에 남음
+      show('회원 탈퇴가 끝났어요. 그동안 이용해 주셔서 감사해요.', 'info');
+    }, deleteMsg);
   });
 
   document.querySelectorAll('.js-logout').forEach((btn) => btn.addEventListener('click', () => {

@@ -31,6 +31,7 @@
 
 .auth-card[hidden],
 .auth-account[hidden],
+.field[hidden],
 .account-note[hidden],
 .auth-form[hidden],
 .auth-alert[hidden],
@@ -115,6 +116,70 @@
   outline: none;
   border-color: var(--amber);
   box-shadow: 0 0 0 3px rgba(240, 180, 92, 0.18);
+}
+
+/* 비밀번호 칸 + 오른쪽 "보기" 버튼 */
+.field__control {
+  position: relative;
+}
+
+.field__control .field__input {
+  padding-right: 76px;
+}
+
+.field__reveal {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-width: 56px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--paper-dim);
+  font: 500 13px/1 var(--font-ko);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.field__reveal:hover {
+  background: rgba(246, 241, 234, 0.08);
+  color: var(--paper);
+}
+
+.field__reveal[aria-pressed="true"] {
+  color: var(--amber);
+}
+
+.field__reveal:focus-visible {
+  outline-offset: 0;
+}
+
+/* 로그인 상태 유지 체크박스 */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  min-height: 32px;
+  font-size: 14px;
+  color: var(--paper-dim);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--amber);
+  cursor: pointer;
+}
+
+.check:hover {
+  color: var(--paper);
 }
 
 .field__hint {
@@ -336,8 +401,82 @@
   margin-top: 8px;
 }
 
+/* ---------- 회원 탈퇴 ---------- */
+
+.danger-zone {
+  padding: 0;
+  border-color: rgba(224, 120, 106, 0.25);
+  background: transparent;
+}
+
+.danger-zone__summary {
+  padding: 18px 28px;
+  color: var(--paper-dim);
+  font-size: 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.danger-zone__summary::-webkit-details-marker {
+  display: none;
+}
+
+.danger-zone__summary::after {
+  content: " ›";
+}
+
+.danger-zone[open] .danger-zone__summary::after {
+  content: " ⌄";
+}
+
+.danger-zone__summary:hover {
+  color: var(--danger);
+}
+
+.danger-zone__form,
+.danger-zone .auth-msg {
+  margin: 0 28px 24px;
+}
+
+.danger-zone__warn {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(224, 120, 106, 0.1);
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(246, 241, 234, 0.88);
+}
+
+.danger-zone__warn strong {
+  color: var(--danger);
+}
+
+.auth-btn--danger {
+  border-color: rgba(224, 120, 106, 0.7);
+  color: var(--danger);
+}
+
+.auth-btn--danger:hover {
+  border-color: var(--danger);
+  background: rgba(224, 120, 106, 0.12);
+}
+
 @media (max-width: 640px) {
   .auth-card {
     padding: 22px 18px;
+  }
+
+  .danger-zone {
+    padding: 0;
+  }
+
+  .danger-zone__summary {
+    padding: 16px 18px;
+  }
+
+  .danger-zone__form,
+  .danger-zone .auth-msg {
+    margin: 0 18px 20px;
   }
 }
