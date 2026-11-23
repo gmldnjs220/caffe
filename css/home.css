@@ -199,7 +199,7 @@
 /* 큰 메뉴 목록 — 로고 바로 아래, 왼쪽 정렬을 유지하면서 살짝 안쪽으로 */
 .sidebar__nav ul {
   list-style: none;
-  margin: 80px 0 0;
+  margin: 52px 0 0;
   padding: 0 0 0 14px;
 }
 
@@ -237,8 +237,8 @@
 
 .sidebar__nav .sidebar__auth a {
   padding: 2px 0;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 300;
   letter-spacing: 0.08em;
   color: var(--paper-dim);
 }
