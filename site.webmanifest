@@ -1,0 +1,13 @@
+{
+  "short_name": "원보틀",
+  "name": "ONE BOTTLE · Coffee / Beer",
+  "icons": [{
+    "src": "icon.png",
+    "type": "image/png",
+    "sizes": "192x192"
+  }],
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#14110e",
+  "theme_color": "#14110e"
+}

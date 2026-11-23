@@ -1,0 +1,572 @@
+/* ==========================================================================
+   ONE BOTTLE — 대문(index.html) 전용 스타일
+   왼쪽 반투명 사이드바 · 가운데 상호명 · 오른쪽 세로 점 · 전체 화면 사진 슬라이드
+   ========================================================================== */
+
+/* 대문은 한 화면에 고정 — 스크롤 없음 */
+.page-home {
+  overflow: hidden;
+  --sidebar-w: clamp(200px, 16vw, 240px);
+}
+
+/* --------------------------------------------------------------------------
+   왼쪽 반투명 사이드바
+   -------------------------------------------------------------------------- */
+
+.sidebar {
+  position: fixed;
+  z-index: 10;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-w);
+  padding: clamp(32px, 8vh, 72px) 28px 32px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+/* --------------------------------------------------------------------------
+   블러 배경 (.sidebar-bg)
+   평소엔 왼쪽 밖에 숨어 있다가 사이드바에 마우스를 올리면 사이드바만큼 펼쳐지고,
+   메뉴를 누르면(.is-page-open) 화면 오른쪽 끝까지 채우면서 더 진해짐
+   -------------------------------------------------------------------------- */
+
+.sidebar-bg {
+  position: fixed;
+  z-index: 9;               /* 사이드바(10)보다 아래, 가운데 ONE BOTTLE(.hero)보다 위 */
+  --feather: 110px;         /* 오른쪽 경계가 흐려지는 폭. 키우면 더 넓게 번지고, 0이면 딱 떨어지는 경계 */
+  --bg-speed: 0.65s;        /* 호버로 펼쳐질 때와 메뉴 클릭으로 채워질 때 같은 속도. 줄이면 빨라짐 */
+  --bg-ease: cubic-bezier(0.45, 0, 0.25, 1);
+  inset: 0 auto 0 0;
+  width: 0;                 /* 평소엔 폭 0으로 숨김 */
+  background: rgba(20, 17, 14, 0.38);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  /* 오른쪽 끝 --feather 구간을 부드럽게 투명하게 → 경계가 모호해짐. 폭이 늘어나도 흐린 끝이 같이 따라감 */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--feather)),
+    rgba(0, 0, 0, 0.957) calc(100% - var(--feather) * 0.875),
+    rgba(0, 0, 0, 0.844) calc(100% - var(--feather) * 0.750),
+    rgba(0, 0, 0, 0.684) calc(100% - var(--feather) * 0.625),
+    rgba(0, 0, 0, 0.500) calc(100% - var(--feather) * 0.500),
+    rgba(0, 0, 0, 0.316) calc(100% - var(--feather) * 0.375),
+    rgba(0, 0, 0, 0.156) calc(100% - var(--feather) * 0.250),
+    rgba(0, 0, 0, 0.043) calc(100% - var(--feather) * 0.125),
+    transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--feather)),
+    rgba(0, 0, 0, 0.957) calc(100% - var(--feather) * 0.875),
+    rgba(0, 0, 0, 0.844) calc(100% - var(--feather) * 0.750),
+    rgba(0, 0, 0, 0.684) calc(100% - var(--feather) * 0.625),
+    rgba(0, 0, 0, 0.500) calc(100% - var(--feather) * 0.500),
+    rgba(0, 0, 0, 0.316) calc(100% - var(--feather) * 0.375),
+    rgba(0, 0, 0, 0.156) calc(100% - var(--feather) * 0.250),
+    rgba(0, 0, 0, 0.043) calc(100% - var(--feather) * 0.125),
+    transparent);
+  pointer-events: none;
+  /* 호버도, 메뉴 클릭도 '폭'만 늘어나는 같은 방식이라 속도와 느낌이 똑같음 */
+  transition:
+    width var(--bg-speed) var(--bg-ease),
+    background-color var(--bg-speed) ease,
+    backdrop-filter var(--bg-speed) ease,
+    -webkit-backdrop-filter var(--bg-speed) ease;
+}
+
+.sidebar:hover ~ .sidebar-bg {
+  width: calc(var(--sidebar-w) + var(--feather));
+}
+
+/* 키보드(Tab)로 메뉴에 들어왔을 때만 펼침.
+   마우스로 로고를 눌렀을 때 남는 포커스로는 펼쳐지지 않게 :focus-within 대신 :focus-visible 사용 */
+.sidebar:has(:focus-visible) ~ .sidebar-bg {
+  width: calc(var(--sidebar-w) + var(--feather));
+}
+
+/* 메뉴를 눌렀을 때: 흐린 경계를 유지한 채 오른쪽 끝까지 쭉 채우고 더 진하게 (흐린 부분은 화면 밖으로 나감)
+   (.sidebar ~ 를 붙인 건 위의 호버 규칙보다 우선하게 하려는 것) */
+.is-page-open .sidebar ~ .sidebar-bg {
+  width: calc(100% + var(--feather));
+  background: rgba(14, 12, 10, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* 현재 열린 페이지 메뉴 표시 */
+.sidebar__nav a[aria-current="page"] {
+  color: var(--amber);
+}
+
+.sidebar__accent a[aria-current="page"] {
+  color: var(--paper);
+}
+
+/* --------------------------------------------------------------------------
+   페이지 내용 (.page-layer) — 블러가 다 펼쳐진 뒤 페이드 인
+   -------------------------------------------------------------------------- */
+
+.page-layer {
+  position: fixed;
+  z-index: 11;
+  inset: 0 0 0 var(--sidebar-w);
+  opacity: 0;
+  visibility: hidden;
+  /* 닫을 때: 내용이 먼저 사라짐 */
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.is-page-open .page-layer {
+  opacity: 1;
+  visibility: visible;
+  /* 열 때: 블러가 펼쳐지는 동안 기다렸다가(0.45초) 페이드 인 */
+  transition: opacity 0.6s ease 0.45s, visibility 0s;
+}
+
+.page-layer__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  transition: opacity 0.25s ease;
+}
+
+/* 다른 메뉴로 바꿀 때 잠깐 흐려졌다가 새 페이지가 페이드 인 */
+.page-layer.is-swapping .page-layer__frame {
+  opacity: 0;
+}
+
+.page-layer__close {
+  position: absolute;
+  z-index: 1;
+  top: 18px;
+  right: 22px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper-dim);
+  cursor: pointer;
+}
+
+.page-layer__close:hover {
+  background: rgba(246, 241, 234, 0.08);
+  color: var(--paper);
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 로고 이미지 (매장 현수막 로고) */
+.sidebar__logo {
+  display: block;
+  width: 150px;
+  transition: opacity 0.25s ease;
+}
+
+.sidebar__logo:hover {
+  opacity: 0.8;
+}
+
+.sidebar__logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sidebar__panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* 작은 링크 줄 (전화번호 및 영업시간) */
+.sidebar__util {
+  list-style: none;
+  margin: 0 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--paper-dim);
+}
+
+.sidebar__util a:hover {
+  color: var(--paper);
+}
+
+/* 큰 메뉴 목록 — 로고 바로 아래, 왼쪽 정렬을 유지하면서 살짝 안쪽으로 */
+.sidebar__nav ul {
+  list-style: none;
+  margin: 80px 0 0;
+  padding: 0 0 0 14px;
+}
+
+.sidebar__nav a {
+  display: inline-block;
+  padding: 3px 0;
+  font-family: var(--font-en);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: color 0.25s ease;
+}
+
+.sidebar__nav a:hover,
+.sidebar__nav a:focus-visible {
+  color: var(--amber);
+}
+
+/* 강조 메뉴 하나 */
+.sidebar__accent {
+  margin-top: 18px;
+}
+
+.sidebar__accent a {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.sidebar__accent a:hover,
+.sidebar__accent a:focus-visible {
+  color: var(--paper);
+}
+
+.sidebar__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 13px 0 0 6px;
+  color: var(--paper);
+}
+
+.sidebar__icon:hover {
+  color: var(--amber);
+}
+
+.sidebar__info {
+  margin-top: auto;
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--paper-dim);
+}
+
+/* 모바일 전용 버튼은 기본으로 숨김 */
+.sidebar__toggle {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Hero / 슬라이드
+   -------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero__slides,
+.slide,
+.hero__shade {
+  position: absolute;
+  inset: 0;
+}
+
+.slide {
+  margin: 0;
+  opacity: 0;
+  transition: opacity 1.6s ease-in-out;
+}
+
+.slide.is-active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.1);
+  transition: transform 8s ease-out;
+  will-change: transform;
+}
+
+/* 천천히 줌아웃되는 켄번즈 효과 */
+.slide.is-active img {
+  transform: scale(1);
+}
+
+/* 사진이 잘 보이도록 가운데만 살짝 어둡게 */
+.hero__shade {
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(10, 8, 6, 0.4) 0%, rgba(10, 8, 6, 0.1) 55%, rgba(10, 8, 6, 0) 100%);
+}
+
+/* --------------------------------------------------------------------------
+   가운데 상호명 + 테두리 버튼 (모니터 화면 정중앙)
+   -------------------------------------------------------------------------- */
+
+.hero__copy {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--gutter);
+  text-align: center;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--font-en);
+  font-size: clamp(28px, 3.2vw, 46px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  /* 자간 때문에 생기는 오른쪽 여백만큼 보정해서 정확히 가운데 */
+  margin-right: -0.3em;
+  white-space: nowrap;
+}
+
+/* 설명 문구는 따로 띄워서, ONE BOTTLE 글자만 정확히 화면 정중앙에 오게 함 */
+.hero__desc {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% + clamp(28px, 3.2vw, 46px) / 2 + 18px);  /* 정중앙 + 글자 크기의 절반 + 간격 18px. 글자 크기를 바꾸면 여기 clamp도 같이 */
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  color: var(--paper-dim);
+}
+
+/* --------------------------------------------------------------------------
+   오른쪽 세로 점 (슬라이드 선택)
+   -------------------------------------------------------------------------- */
+
+.hero__controls {
+  position: absolute;
+  z-index: 4;
+  right: clamp(16px, 4vw, 72px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero__dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 버튼은 손가락으로 누르기 쉽게 크게, 점은 작게 */
+.hero__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 25px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.hero__dot span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(246, 241, 234, 0.85);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.hero__dot:hover span {
+  background: var(--amber);
+}
+
+.hero__dot.is-active span {
+  background: var(--paper);
+  transform: scale(2.6);
+}
+
+/* --------------------------------------------------------------------------
+   반응형 — 모바일에서는 사이드바를 위쪽 바로 줄이고, 버튼으로 펼침
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .sidebar {
+    inset: 0 0 auto 0;
+    width: auto;
+    padding: max(14px, env(safe-area-inset-top)) 16px 14px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(20, 17, 14, 0.3);
+    border-bottom: 1px solid rgba(246, 241, 234, 0.12);
+    max-height: 100dvh;
+  }
+
+  /* 휴대폰: 호버가 없으니 평소엔 숨기고, 메뉴를 누르면 화면 전체에 서서히 나타남 */
+  .sidebar-bg {
+    width: 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .sidebar:hover ~ .sidebar-bg {
+    width: 100%;
+  }
+
+  .sidebar:has(:focus-visible) ~ .sidebar-bg {
+    width: 100%;
+  }
+
+  .is-page-open .sidebar-bg {
+    opacity: 1;
+  }
+
+  /* 휴대폰: 위쪽 로고 바 아래 전체에 페이지 내용 */
+  .page-layer {
+    inset: var(--bar-h, 72px) 0 0 0;
+  }
+
+  .page-layer__close {
+    top: 8px;
+    right: 8px;
+  }
+
+  .sidebar__logo {
+    width: 52px;
+  }
+
+  .sidebar__toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--paper);
+    cursor: pointer;
+  }
+
+  /* 햄버거 아이콘 (가운데 줄 + 위아래 줄) */
+  .sidebar__toggle-bar,
+  .sidebar__toggle-bar::before,
+  .sidebar__toggle-bar::after {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+
+  .sidebar__toggle-bar {
+    position: relative;
+  }
+
+  .sidebar__toggle-bar::before,
+  .sidebar__toggle-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+  }
+
+  .sidebar__toggle-bar::before { top: -7px; }
+  .sidebar__toggle-bar::after { top: 7px; }
+
+  .sidebar.is-open .sidebar__toggle-bar { background: transparent; }
+  .sidebar.is-open .sidebar__toggle-bar::before { transform: translateY(7px) rotate(45deg); }
+  .sidebar.is-open .sidebar__toggle-bar::after { transform: translateY(-7px) rotate(-45deg); }
+
+  .sidebar__panel {
+    display: none;
+    flex-basis: 100%;
+    padding-bottom: 12px;
+  }
+
+  .sidebar.is-open {
+    background: rgba(20, 17, 14, 0.9);
+  }
+
+  .sidebar.is-open .sidebar__panel {
+    display: flex;
+  }
+
+  .sidebar__util {
+    margin-top: 24px;
+  }
+
+  .sidebar__nav a {
+    font-size: 22px;
+    padding: 5px 0;
+  }
+
+
+  .hero__controls {
+    right: 8px;
+  }
+
+  .hero__dot {
+    height: 22px;
+  }
+}
+
+@media (max-height: 560px) and (min-width: 761px) {
+  .sidebar {
+    padding-top: 20px;
+  }
+
+  .sidebar__logo {
+    width: 100px;
+  }
+
+  .sidebar__nav ul {
+    margin-top: 16px;
+  }
+}
+
+@media (max-height: 480px) {
+  .hero__dot {
+    height: 18px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-bg,
+  .page-layer,
+  .is-page-open .page-layer {
+    transition: none;
+  }
+
+  .slide {
+    transition-duration: 0.4s;
+  }
+
+  .slide img,
+  .slide.is-active img {
+    transform: none;
+    transition: none;
+  }
+}

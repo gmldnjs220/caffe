@@ -1,0 +1,440 @@
+/* ==========================================================================
+   메뉴 페이지
+   ========================================================================== */
+
+:root {
+  --surface: #1d1915;
+  --line-strong: rgba(246, 241, 234, 0.32);
+  --hot: #f08a5d;
+  --ice: #7cc4e8;
+}
+
+/* ---------- 페이지 폭: 내용을 가운데 쪽으로 모음 ---------- */
+
+.content-page--menu {
+  --menu-pad: clamp(24px, 7vw, 120px);   /* 좌우 여백. 값을 키우면 내용 폭이 좁아지고 더 안쪽으로 들어감 */
+  max-width: calc(1000px + var(--menu-pad) * 2);
+  padding-left: var(--menu-pad);
+  padding-right: var(--menu-pad);
+}
+
+/* ---------- 카테고리 필터 ---------- */
+
+.filter {
+  margin: 36px 0 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);   /* ABOUT 분리선과 같은 양식, 길이는 메뉴판 폭에 맞춤 */
+}
+
+.filter__scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  font: 500 14px/1 var(--font-ko);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.chip:hover {
+  border-color: var(--amber);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--ink);
+}
+
+.chip__count {
+  font-family: var(--font-en);
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* ---------- 메뉴판 ---------- */
+
+.menu-board {
+  margin-top: clamp(32px, 5vw, 56px);
+}
+
+.menu-board.is-entering .menu-cat:not([hidden]) {
+  animation: rise 0.45s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.menu-group + .menu-group {
+  margin-top: clamp(56px, 8vw, 96px);
+}
+
+.menu-group__title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 28px;
+  font-weight: 400;
+}
+
+.menu-group__en {
+  font-family: var(--font-en);
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+}
+
+.menu-group__ko {
+  font-size: 14px;
+  color: var(--paper-dim);
+}
+
+.menu-group__cols {
+  columns: 3 260px;
+  column-gap: clamp(32px, 5vw, 64px);
+}
+
+.menu-cat {
+  break-inside: avoid;
+  margin-bottom: 44px;
+}
+
+.menu-cat__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 6px;
+  border-bottom: 2px solid var(--paper);
+}
+
+.menu-cat__title {
+  margin: 0;
+  font-family: var(--font-en);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.menu-cat__ko {
+  font-size: 13px;
+  color: var(--paper-dim);
+}
+
+.menu-cat__meta {
+  margin-left: auto;
+  font-family: var(--font-en);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--paper-dim);
+  white-space: nowrap;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 하나의 카테고리만 볼 때는 목록을 넓게 */
+.menu-board.is-filtered .menu-group__cols {
+  columns: auto;
+}
+
+.menu-board.is-filtered .menu-group__title {
+  display: none;
+}
+
+.menu-board.is-filtered .menu-list {
+  columns: 2 320px;
+  column-gap: clamp(32px, 5vw, 64px);
+}
+
+.menu-board.is-filtered .menu-list li {
+  break-inside: avoid;
+}
+
+.menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--paper);
+  font: 400 15px/1.4 var(--font-ko);
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease, padding 0.2s ease;
+}
+
+.menu-item__lead {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 1px dotted rgba(246, 241, 234, 0.25);
+  transform: translateY(-4px);
+}
+
+.menu-item__price {
+  font-family: var(--font-en);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  color: var(--amber);
+  padding-left: 10px;
+}
+
+.menu-item:hover .menu-item__lead {
+  border-bottom-color: rgba(240, 180, 92, 0.5);
+}
+
+.menu-item:focus-visible {
+  outline-offset: 0;
+}
+
+/* ---------- 상세 정보 (dialog) ---------- */
+
+.sheet {
+  width: min(460px, calc(100% - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--paper);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.sheet::backdrop {
+  background: rgba(8, 6, 4, 0.66);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.sheet[open] {
+  animation: sheet-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sheet[open]::backdrop {
+  animation: fade-in 0.32s ease;
+}
+
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sheet__inner {
+  position: relative;
+  padding: 36px 32px 32px;
+}
+
+.sheet__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper-dim);
+  cursor: pointer;
+}
+
+.sheet__close:hover {
+  background: rgba(246, 241, 234, 0.08);
+  color: var(--paper);
+}
+
+.sheet__cat {
+  margin: 0 0 10px;
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--amber);
+}
+
+.sheet__title {
+  margin: 0;
+  padding-right: 32px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.sheet__price {
+  margin-top: 10px;
+  font-family: var(--font-en);
+  font-size: 20px;
+}
+
+.sheet__price strong {
+  font-weight: 500;
+}
+
+.sheet__price.has-variants {
+  display: grid;
+  gap: 6px;
+  font-size: 16px;
+}
+
+.sheet__variant {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-ko);
+  color: var(--paper-dim);
+}
+
+.sheet__variant strong {
+  font-family: var(--font-en);
+  color: var(--paper);
+}
+
+.sheet__tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 22px 0 0;
+  padding: 0;
+}
+
+.sheet__tags[hidden],
+.sheet__options[hidden] {
+  display: none;
+}
+
+.tag {
+  padding: 5px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--paper-dim);
+}
+
+.tag--hot {
+  border-color: rgba(240, 138, 93, 0.6);
+  color: var(--hot);
+  font-family: var(--font-en);
+  letter-spacing: 0.08em;
+}
+
+.tag--ice {
+  border-color: rgba(124, 196, 232, 0.6);
+  color: var(--ice);
+  font-family: var(--font-en);
+  letter-spacing: 0.08em;
+}
+
+.sheet__desc {
+  margin: 22px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(246, 241, 234, 0.86);
+}
+
+.sheet__options {
+  margin-top: 22px;
+}
+
+.sheet__sub {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--paper-dim);
+}
+
+.sheet__options ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sheet__options li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 14px;
+}
+
+/* ---------- 모바일: 바텀 시트 ---------- */
+
+@media (max-width: 640px) {
+  .chip {
+    height: 36px;
+    padding: 0 14px;
+  }
+
+  .menu-group__cols {
+    columns: 1;
+  }
+
+  .sheet {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+    max-height: 85dvh;
+  }
+
+  .sheet[open] {
+    animation: sheet-up 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .sheet__inner {
+    padding: 32px 22px calc(28px + env(safe-area-inset-bottom));
+  }
+
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-board.is-entering .menu-cat:not([hidden]),
+  .sheet[open],
+  .sheet[open]::backdrop {
+    animation: none;
+  }
+}

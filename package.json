@@ -1,0 +1,24 @@
+{
+  "name": "onebottle-cafe",
+  "version": "0.0.1",
+  "description": "안양 석수동 카페 원보틀 웹사이트",
+  "private": true,
+  "keywords": [
+    "cafe",
+    "onebottle"
+  ],
+  "license": "UNLICENSED",
+  "author": "",
+  "scripts": {
+    "start": "webpack serve --open --config webpack.config.dev.js",
+    "build": "webpack --config webpack.config.prod.js"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "html-webpack-plugin": "^5.6.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4",
+    "webpack-merge": "^5.10.0"
+  }
+}
