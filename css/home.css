@@ -223,6 +223,11 @@
   margin-top: 18px;
 }
 
+/* 강조 메뉴가 연달아 있으면(MENU, ORDER) 한 묶음으로 붙여 둠 */
+.sidebar__accent + .sidebar__accent {
+  margin-top: 0;
+}
+
 .sidebar__accent a {
   color: var(--amber);
   font-weight: 600;

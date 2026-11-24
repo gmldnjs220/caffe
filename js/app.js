@@ -25,7 +25,7 @@
   const sidebar = document.querySelector('.js-sidebar');
   if (!layer || !frame || !sidebar) return;
 
-  const PAGES = ['about', 'notice', 'location', 'menu', 'login'];
+  const PAGES = ['about', 'notice', 'location', 'menu', 'order', 'login'];
   const pageOf = (href) => (href || '').split('#')[0].replace('.html', '');
   const isPage = (href) => PAGES.includes(pageOf(href));
   let current = null;
@@ -111,7 +111,7 @@
     pendingTab = null;
   });
 
-  // 사이드바 안의 about / notice / location / menu / login 링크는 메인 안에서 열기
+  // 사이드바 안의 about / notice / location / menu / order / login 링크는 메인 안에서 열기
   sidebar.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
     if (!a) return;

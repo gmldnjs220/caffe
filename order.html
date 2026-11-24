@@ -1,0 +1,170 @@
+<!doctype html>
+<html class="no-js" lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>주문 · ONE BOTTLE</title>
+  <meta name="description" content="원보틀 메뉴를 골라 장바구니에 담고 주문하기">
+
+  <!-- 공유 미리보기(카카오톡, SNS). 도메인이 정해지면 og:url을 추가하고 og:image를 https:// 절대 주소로 바꿔 주세요 -->
+  <meta property="og:site_name" content="ONE BOTTLE">
+  <meta property="og:title" content="주문 · ONE BOTTLE">
+  <meta property="og:description" content="원보틀 메뉴를 골라 장바구니에 담고 주문하기">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="img/og-image.jpg">
+  <meta property="og:image:alt" content="통창 너머로 벚꽃이 보이는 원보틀 카페 내부">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/main.css">
+  <!-- 팝업(.sheet), 태그(.tag) 모양은 메뉴 페이지와 같이 씀 -->
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/order.css">
+
+  <link rel="icon" href="favicon.ico?v=3" sizes="any">
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.png?v=3">
+
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#14110e">
+  <!-- 메인 화면 안(iframe)에서 열렸는지 확인해서 위쪽 메뉴를 숨김 -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
+    }
+  </script>
+</head>
+
+<body class="page-sub">
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="ONE BOTTLE 홈">
+      <span class="brand__name">ONE BOTTLE</span>
+      <span class="brand__sub">Coffee / Beer</span>
+    </a>
+
+    <nav class="gnb" aria-label="주 메뉴">
+      <ul>
+        <li><a href="about.html">소개</a></li>
+        <li><a href="menu.html">메뉴</a></li>
+        <li><a href="order.html" aria-current="page">주문</a></li>
+        <li><a href="notice.html">공지사항</a></li>
+        <li><a href="location.html">오시는 길</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="content-page content-page--order">
+    <div class="page-head">
+      <p class="page-head__eyebrow">Order</p>
+      <h1 class="page-head__title">주문하기</h1>
+      <p class="page-head__desc">메뉴를 눌러 옵션을 고르고 장바구니에 담아 주세요</p>
+    </div>
+
+    <div class="order-layout">
+      <section class="order-menu" aria-label="메뉴 고르기">
+        <div class="order-filter">
+          <label class="order-filter__label" for="order-cat">카테고리</label>
+          <div class="select">
+            <select class="select__input js-filter" id="order-cat"></select>
+            <svg class="select__arrow" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="order-grid js-grid"></div>
+      </section>
+
+      <aside class="cart js-cart" id="cart" aria-labelledby="cart-title">
+        <div class="cart__head">
+          <h2 class="cart__title" id="cart-title">장바구니 <span class="cart__count js-cart-count">0</span></h2>
+          <button type="button" class="cart__clear js-cart-clear">전체 비우기</button>
+          <button type="button" class="cart__close js-cart-close" aria-label="장바구니 닫기">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <p class="cart__empty js-cart-empty">아직 담은 메뉴가 없어요.<br>왼쪽에서 메뉴를 골라 주세요.</p>
+        <ul class="cart__list js-cart-list" aria-live="polite"></ul>
+
+        <div class="cart__foot">
+          <div class="cart__total">
+            <span>합계</span>
+            <strong class="js-cart-total">0원</strong>
+          </div>
+          <button type="button" class="btn btn--primary cart__submit js-cart-submit" disabled>주문하기</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- 휴대폰: 아래쪽 장바구니 바 -->
+  <button type="button" class="cart-bar js-cart-bar" aria-controls="cart" aria-expanded="false" hidden>
+    <span class="cart-bar__count js-bar-count">0</span>
+    <span class="cart-bar__label">장바구니 보기</span>
+    <strong class="cart-bar__total js-bar-total">0원</strong>
+  </button>
+  <div class="cart-dim js-cart-dim" hidden></div>
+
+  <!-- 메뉴 옵션 고르기 -->
+  <dialog class="sheet js-pick" aria-labelledby="pick-title">
+    <form class="sheet__inner pick" method="dialog">
+      <button type="button" class="sheet__close js-pick-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <p class="sheet__cat js-pick-cat"></p>
+      <h2 class="sheet__title" id="pick-title"></h2>
+      <p class="pick__desc js-pick-desc"></p>
+
+      <div class="pick__fields js-pick-fields"></div>
+
+      <div class="pick__qty">
+        <span class="pick__label">수량</span>
+        <div class="stepper">
+          <button type="button" class="stepper__btn js-qty-minus" aria-label="수량 줄이기">−</button>
+          <output class="stepper__value js-qty" aria-live="polite">1</output>
+          <button type="button" class="stepper__btn js-qty-plus" aria-label="수량 늘리기">+</button>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn--primary pick__add js-pick-add">
+        <span class="js-pick-total">0원</span> 담기
+      </button>
+    </form>
+  </dialog>
+
+  <!-- 주문 내역 확인 -->
+  <dialog class="sheet js-confirm" aria-labelledby="confirm-title">
+    <div class="sheet__inner">
+      <button type="button" class="sheet__close js-confirm-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <p class="sheet__cat">ORDER</p>
+      <h2 class="sheet__title" id="confirm-title">주문 내역 확인</h2>
+      <ul class="confirm__list js-confirm-list"></ul>
+      <div class="cart__total confirm__total">
+        <span>합계</span>
+        <strong class="js-confirm-total">0원</strong>
+      </div>
+      <!-- TODO: 실제 주문 접수(서버 전송)는 아직 연결 전. 연결되면 이 안내 문구를 바꿔 주세요 -->
+      <p class="confirm__note">온라인 주문 접수는 아직 준비 중이에요. 이 화면을 카운터에 보여 주시면 바로 주문을 도와드릴게요.</p>
+      <div class="confirm__actions">
+        <button type="button" class="btn js-confirm-back">계속 담기</button>
+        <button type="button" class="btn btn--primary js-confirm-done">확인하고 비우기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script defer src="js/menu-data.js"></script>
+  <script defer src="js/order.js"></script>
+
+</body>
+
+</html>
