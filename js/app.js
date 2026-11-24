@@ -136,7 +136,9 @@
       if (tab && pageOf(href) === current) swapTab(tab);
       else {
         pendingTab = tab || null;
-        openPage(href);
+        // SIGN IN은 login.html#signup 으로 열어서, 페이지가 뜨자마자 회원가입 화면이 보이게 함
+        // (iframe의 load는 Supabase를 다 불러온 뒤에야 와서, 그때 바꾸면 한참 로그인 화면이 보였음)
+        openPage(tab === 'signup' ? `${href}#signup` : href);
       }
     } else if (href === 'index.html' && body.classList.contains('is-page-open')) {
       e.preventDefault(); // 로고를 누르면 메인으로 돌아오기
