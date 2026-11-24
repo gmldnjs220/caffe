@@ -61,10 +61,11 @@ function renderMenu() {
           ? item.variants.map((v) => short(v.price)).join(' / ')
           : short(item.price);
         list.append(el('li', {}, el('button', {
-          type: 'button', class: 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
+          type: 'button', class: item.soldOut ? 'menu-item is-soldout' : 'menu-item', 'data-cat': cat.id, 'data-idx': String(idx),
           'aria-haspopup': 'dialog',
         }, [
           el('span', { class: 'menu-item__name', text: item.name }),
+          item.soldOut ? el('span', { class: 'soldout-badge', text: '품절' }) : null,
           el('span', { class: 'menu-item__lead', 'aria-hidden': 'true' }),
           el('span', { class: 'menu-item__price', text: price }),
         ])));

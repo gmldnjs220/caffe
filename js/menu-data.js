@@ -3,7 +3,9 @@
 // - caffeine: true(카페인) | false(논카페인) | 없음(표시 안 함)
 // - milk: true면 '우유 포함' 표시
 // - options: 추가 옵션 [{ label, price }]
-// - variants: 같은 메뉴에 가격이 여러 개일 때 [{ label, price }]
+// - variants: 같은 메뉴에 가격이 여러 개일 때 [{ label, price }]. 그중 하나만 품절이면 그 항목에 soldOut: true
+// - soldOut: true면 '품절' 표시 (메뉴판, 주문 페이지). 다시 팔 때는 줄을 지우거나 false로
+//     예) { name: '당근케이크', price: 7.5, soldOut: true, desc: '...' },
 
 const GROUPS = [
   { id: 'drinks', en: 'DRINKS', ko: '음료' },
