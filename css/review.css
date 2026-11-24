@@ -1,0 +1,459 @@
+/* ==========================================================================
+   리뷰 페이지
+   ========================================================================== */
+
+:root {
+  --surface: #1d1915;
+  --line-strong: rgba(246, 241, 234, 0.32);
+  --naver: #03c75a;
+}
+
+.content-page--review {
+  max-width: calc(var(--page-w) + var(--gutter) * 2);
+}
+
+.review-sub {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ---------- 리뷰 목록 ---------- */
+
+.review-section {
+  margin-top: 48px;
+}
+
+.review-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-section__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.review-write-btn {
+  height: 38px;
+  padding: 0 18px;
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--amber);
+  font: 600 14px/1 var(--font-ko);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.review-write-btn:hover {
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.review-card {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.review-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-card__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(246, 241, 234, 0.1);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.review-card__who {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.review-card__author {
+  font-size: 14px;
+}
+
+.review-card__date {
+  font-size: 12px;
+  color: var(--paper-dim);
+}
+
+.review-card__stars {
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+
+/* ---------- 페이지 번호 ---------- */
+
+.pager {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.pager[hidden] {
+  display: none;
+}
+
+.pager__btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  font: 500 14px/1 var(--font-en);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.pager__btn:hover {
+  border-color: var(--amber);
+}
+
+.pager__btn[aria-current="page"] {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--ink);
+}
+
+/* ---------- 리뷰 쓰기 팝업 ---------- */
+
+.review-dialog {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--paper);
+}
+
+.review-dialog::backdrop {
+  background: rgba(8, 6, 4, 0.66);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.review-form {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+
+.review-form .review-sub {
+  margin: 0;
+}
+
+.review-form__note {
+  margin: -8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--paper-dim);
+}
+
+.review-dialog__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper-dim);
+  cursor: pointer;
+}
+
+.review-dialog__close:hover {
+  background: rgba(246, 241, 234, 0.08);
+  color: var(--paper);
+}
+
+.review-form .field {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.review-form .field[hidden] {
+  display: none;
+}
+
+.review-form .field__label {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--paper-dim);
+}
+
+.field__req {
+  color: var(--amber);
+  font-weight: 500;
+}
+
+.review-form .field__row {
+  display: flex;
+  gap: 8px;
+}
+
+.review-form .field__row .field__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-form .field__btn {
+  flex-shrink: 0;
+  width: auto;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.review-form select.field__input:disabled {
+  color: var(--paper-dim);
+}
+
+.review-form .field__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--paper);
+  color-scheme: dark;
+  font: 400 16px/1.4 var(--font-ko);   /* 16px 미만이면 아이폰에서 입력할 때 화면이 확대됨 */
+}
+
+.review-form .field__textarea {
+  height: auto;
+  padding: 12px 16px;
+  resize: vertical;
+}
+
+.review-form .field__input:focus {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(240, 180, 92, 0.18);
+}
+
+.review-form .field__hint {
+  margin: 0;
+  font-size: 12px;
+  text-align: right;
+  color: var(--paper-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 별점: 오른쪽부터 5 → 1 순서로 두고 flex-direction: row-reverse로 뒤집어서
+   마우스를 올린 별과 그 왼쪽 별들이 함께 칠해지게 함 */
+.rating__stars {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.rating__stars input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rating__stars label {
+  font-size: 30px;
+  line-height: 1;
+  color: rgba(246, 241, 234, 0.2);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.rating__stars input:checked ~ label,
+.rating__stars label:hover,
+.rating__stars label:hover ~ label {
+  color: var(--amber);
+}
+
+.rating__stars input:focus-visible + label {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.review-form__error {
+  margin: 0;
+  font-size: 13px;
+  color: #ff9b8a;
+}
+
+.review-form__error[hidden] {
+  display: none;
+}
+
+.review-form__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.review-btn--ghost {
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.review-btn--amber {
+  border: 0;
+  background: var(--amber);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.review-btn--amber:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.review-card__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+  margin: 16px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(246, 241, 234, 0.9);
+  white-space: pre-line;   /* 리뷰에 적힌 줄바꿈 그대로 */
+}
+
+.review-card.is-open .review-card__text {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+
+.review-card__more {
+  margin-top: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--paper-dim);
+  font: 500 13px/1 var(--font-ko);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.review-card__more:hover {
+  color: var(--amber);
+}
+
+.review-card__more[hidden] {
+  display: none;
+}
+
+.review-card__tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.review-tag {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(246, 241, 234, 0.07);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--paper-dim);
+}
+
+.review-tag--menu {
+  background: rgba(240, 180, 92, 0.14);
+  color: var(--amber);
+}
+
+/* ---------- 네이버로 이동 ---------- */
+
+.review-cta {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.review-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 26px;
+  border-radius: 999px;
+  font: 600 15px/1 var(--font-ko);
+  transition: filter 0.2s ease;
+}
+
+.review-btn--primary {
+  background: var(--naver);
+  color: #fff;
+}
+
+.review-btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.review-cta__note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--paper-dim);
+}
+
+/* ---------- 휴대폰 ---------- */
+
+@media (max-width: 640px) {
+  .review-card {
+    padding: 18px;
+  }
+
+  .review-btn {
+    width: 100%;
+  }
+}

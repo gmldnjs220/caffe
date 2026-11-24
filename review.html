@@ -1,0 +1,153 @@
+<!doctype html>
+<html class="no-js" lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>리뷰 · ONE BOTTLE</title>
+  <meta name="description" content="네이버 플레이스에 남겨 주신 원보틀 방문 리뷰">
+
+  <!-- 공유 미리보기(카카오톡, SNS). 도메인이 정해지면 og:url을 추가하고 og:image를 https:// 절대 주소로 바꿔 주세요 -->
+  <meta property="og:site_name" content="ONE BOTTLE">
+  <meta property="og:title" content="리뷰 · ONE BOTTLE">
+  <meta property="og:description" content="네이버 플레이스에 남겨 주신 원보틀 방문 리뷰">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="img/og-image.jpg">
+  <meta property="og:image:alt" content="통창 너머로 벚꽃이 보이는 원보틀 카페 내부">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/review.css">
+
+  <link rel="icon" href="favicon.ico?v=3" sizes="any">
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.png?v=3">
+
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#14110e">
+  <!-- 메인 화면 안(iframe)에서 열렸는지 확인해서 위쪽 메뉴를 숨김 -->
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.classList.add('is-embed');
+      window.addEventListener('load', function () {
+        var path = location.pathname.split('/').pop() + location.hash;
+        window.parent.postMessage({ type: 'onebottle-page', path: path }, '*');
+      });
+    }
+  </script>
+</head>
+
+<body class="page-sub">
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="ONE BOTTLE 홈">
+      <span class="brand__name">ONE BOTTLE</span>
+      <span class="brand__sub">Coffee / Beer</span>
+    </a>
+
+    <nav class="gnb" aria-label="주 메뉴">
+      <ul>
+        <li><a href="about.html">소개</a></li>
+        <li><a href="menu.html">메뉴</a></li>
+        <li><a href="order.html">주문</a></li>
+        <li><a href="notice.html">공지사항</a></li>
+        <li><a href="review.html" aria-current="page">리뷰</a></li>
+        <li><a href="location.html">오시는 길</a></li>
+        <li><a href="login.html" data-auth-link data-label-in="내 계정">로그인</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="content-page content-page--review">
+    <div class="page-head">
+      <p class="page-head__eyebrow">Review</p>
+      <h1 class="page-head__title">리뷰</h1>
+    </div>
+
+    <section class="review-section" aria-labelledby="review-list-title">
+      <div class="review-section__head">
+        <h2 class="review-sub" id="review-list-title">방문자 리뷰</h2>
+        <div class="review-section__actions">
+          <button type="button" class="review-write-btn js-write-open">리뷰 쓰기</button>
+        </div>
+      </div>
+      <ul class="review-list js-list"></ul>
+      <!-- 리뷰가 10개 넘으면 1, 2, 3 … 페이지 번호 -->
+      <nav class="pager js-pager" aria-label="리뷰 페이지" hidden></nav>
+    </section>
+
+    <div class="review-cta">
+      <a class="review-btn review-btn--primary js-naver" href="#" target="_blank" rel="noopener">
+        네이버에서 리뷰 전체 보기
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <p class="review-cta__note">다녀가셨다면 네이버에 리뷰를 남겨 주세요. 큰 힘이 돼요.</p>
+    </div>
+  </main>
+
+  <!-- 리뷰 쓰기: 주문할 때 적은 휴대폰 번호로 작성 (DB write_review 함수) -->
+  <dialog class="review-dialog js-write" aria-labelledby="write-title">
+    <form class="review-form js-write-form" novalidate>
+      <button type="button" class="review-dialog__close js-write-close" aria-label="닫기">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <h2 class="review-sub" id="write-title">리뷰 쓰기</h2>
+      <p class="review-form__note">주문할 때 적은 휴대폰 번호를 넣으면, 그 번호로 주문한 메뉴(최근 30일) 중에서 골라 리뷰를 쓸 수 있어요. 번호는 다른 사람에게 보이지 않아요.</p>
+
+      <div class="field">
+        <label class="field__label" for="write-phone">휴대폰 번호 <span class="field__req">(필수)</span></label>
+        <div class="field__row">
+          <input class="field__input" id="write-phone" name="phone" type="tel" inputmode="tel" maxlength="13" autocomplete="tel" placeholder="010-1234-5678" required>
+          <button type="button" class="review-btn review-btn--ghost field__btn js-write-lookup">주문 메뉴 찾기</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="write-item">리뷰 쓸 메뉴 <span class="field__req">(필수)</span></label>
+        <select class="field__input" id="write-item" name="item" required disabled>
+          <option value="">번호를 넣고 주문 메뉴 찾기를 눌러 주세요</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="write-name">닉네임</label>
+        <input class="field__input" id="write-name" name="nickname" type="text" maxlength="30" autocomplete="nickname" required>
+      </div>
+      <fieldset class="field rating">
+        <legend class="field__label">별점</legend>
+        <div class="rating__stars">
+          <input type="radio" id="star5" name="rating" value="5" checked><label for="star5" title="5점">★</label>
+          <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4점">★</label>
+          <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3점">★</label>
+          <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2점">★</label>
+          <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1점">★</label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label class="field__label" for="write-text">리뷰</label>
+        <textarea class="field__input field__textarea" id="write-text" name="content" rows="5" minlength="5" maxlength="1000" required></textarea>
+        <p class="field__hint"><span class="js-write-count">0</span> / 1000</p>
+      </div>
+
+      <p class="review-form__error js-write-error" role="alert" hidden></p>
+      <div class="review-form__actions">
+        <button type="button" class="review-btn review-btn--ghost js-write-close">취소</button>
+        <button type="submit" class="review-btn review-btn--amber js-write-submit">등록하기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script defer src="js/supabase-config.js"></script>
+  <script defer src="js/review-data.js"></script>
+  <script defer src="js/review.js"></script>
+  <!-- Supabase: 손님이 쓴 리뷰 읽기·쓰기. 버전을 올릴 때는 menu.html 의 주소와 같이 바꿔 주세요 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script defer src="js/supabase-client.js"></script>
+  <script type="module" src="js/auth-nav.js"></script>
+
+</body>
+
+</html>

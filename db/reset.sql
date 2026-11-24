@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS
 
 DROP FUNCTION IF EXISTS public.place_order(text, jsonb, order_type, text);
 DROP FUNCTION IF EXISTS public.get_order_status(text, int);
+DROP FUNCTION IF EXISTS public.write_review(text, text, int, text, int);
+DROP FUNCTION IF EXISTS public.get_reviewable_items(text);
 DROP FUNCTION IF EXISTS public.is_admin();
 DROP FUNCTION IF EXISTS public.handle_new_user();
 

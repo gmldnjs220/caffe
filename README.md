@@ -62,12 +62,14 @@ npm run build
 ├─ menu.html           메뉴
 ├─ order.html          주문 (메뉴 고르기 + 장바구니)
 ├─ notice.html         공지사항
+├─ review.html         리뷰 (네이버 리뷰를 골라 옮겨 적은 것)
 ├─ location.html       오시는 길
 ├─ login.html          로그인 / 회원가입 (Supabase Auth)
 ├─ 404.html            없는 페이지 안내
 ├─ css/
 │  ├─ style.css        기본 초기화 스타일
 │  ├─ main.css         모든 페이지 공통 (색, 글꼴, 머리글, 페이지 폭)
+│  ├─ review.css       리뷰 페이지
 │  ├─ home.css         홈 화면 (사이드바, 블러, 슬라이드)
 │  ├─ login.css        로그인 페이지
 │  ├─ pages.css        소개, 공지사항, 오시는 길
@@ -83,6 +85,8 @@ npm run build
 │  ├─ supabase-client.js  메뉴 페이지용 Supabase 연결
 │  ├─ menu-api.js      메뉴를 Supabase에서 읽기 (실패하면 menu-data.js)
 │  ├─ menu-data.js     예비 메뉴 데이터 (이름, 가격, 설명)
+│  ├─ review-data.js   리뷰 데이터 (지금은 예시. 실제 리뷰로 바꾸는 방법은 파일 맨 위에)
+│  ├─ review.js        리뷰 페이지 동작 (키워드로 걸러 보기, 더보기)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)
 │  ├─ order.js         주문 페이지 동작 (옵션 고르기, 장바구니)
 │  ├─ notice.js        공지사항 열기/닫기 애니메이션
@@ -115,6 +119,7 @@ npm run build
 | 영업시간, 임시 휴무 | `js/hours.js` | 이 파일만 고치면 홈 사이드바(오늘 요일의 영업시간), 공지사항, 오시는 길에 모두 반영됨 |
 | 전화번호, 주소 | `index.html`, `location.html` | `tel:`, `석수동` |
 | 메뉴, 가격 | `js/menu-data.js` | 메뉴 이름으로 검색 |
+| 리뷰 | `js/review-data.js` | 파일 맨 위 안내 참고. 실제 리뷰로 바꾸면 `REVIEW_SAMPLE`을 `false`로 |
 | 홈 슬라이드 사진 | `index.html` | `hero__slides` 안의 `<figure class="slide">`. 첫 장만 `src`, 나머지는 `data-src`로 적어야 함 |
 | 사이드바 블러 속도/번짐 | `css/home.css` | `.sidebar-bg`의 `--bg-speed`, `--feather` |
 | 약도 크기 | `css/pages.css` | `.visit-map`의 `max-width` |
