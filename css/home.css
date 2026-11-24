@@ -563,8 +563,12 @@
     padding-bottom: 12px;
   }
 
+  /* 페이지가 열린 상태(.page-layer, z-index 11)에서 메뉴를 펼쳐도 메뉴가 페이지 내용 위에 오도록 */
   .sidebar.is-open {
-    background: rgba(20, 17, 14, 0.9);
+    z-index: 12;
+    background: rgba(20, 17, 14, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .sidebar.is-open .sidebar__panel {
