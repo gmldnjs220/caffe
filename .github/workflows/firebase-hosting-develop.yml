@@ -1,0 +1,23 @@
+# develop 브랜치에 합쳐질 때마다 고정 미리보기 주소(develop 채널)로 자동 배포
+# 주소: https://caffe-onebottle--develop-XXXX.web.app (첫 배포 후 Actions 로그나 Firebase 콘솔 Hosting 에서 확인)
+# 실제 사이트(live)는 main 에서만 배포돼요 (firebase-hosting-merge.yml)
+
+name: Deploy develop to Firebase preview channel
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CAFFE_ONEBOTTLE }}
+          projectId: caffe-onebottle
+          channelId: develop
+          expires: 30d
