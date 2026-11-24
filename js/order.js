@@ -1,4 +1,6 @@
-// 주문 페이지: 메뉴 고르기 + 장바구니 (menu-data.js 다음에 실행)
+// 주문 페이지: 메뉴 고르기 + 장바구니 (menu-data.js, menu-api.js 다음에 실행)
+// - 메뉴는 메뉴 페이지처럼 먼저 지난번 메뉴(없으면 menu-data.js)로 그리고, Supabase 메뉴가 오면 바꿔 그림
+//   → 품절은 DB의 menus.is_available 기준 (menu-api.js가 soldOut으로 바꿔 줌)
 // - 가격은 menu-data.js의 1,000원 단위 값을 원 단위 정수로 바꿔서 계산함 (소수점 오차 방지)
 // - 장바구니는 이 브라우저에만 저장됨(localStorage). 다른 기기와는 공유되지 않음
 // - 주문하기: 전화번호(필수)와 함께 Supabase place_order() 함수로 DB에 저장 (결제 단계는 아직 없음)
@@ -37,11 +39,14 @@ function closeIcon() {
   return svg;
 }
 
-const findCat = (id) => CATEGORIES.find((c) => c.id === id);
+let menuGroups = [];
+let menuCats = [];
+
+const findCat = (id) => menuCats.find((c) => c.id === id);
 const findItem = (cat, name) => cat && cat.items.find((i) => i.name === name);
 const tempOf = (cat, item) => ('temp' in item ? item.temp : cat.temp);
 
-// 품절 (menu-data.js의 soldOut: true). 종류(variants)가 모두 품절이면 메뉴 전체가 품절
+// 품절 (DB is_available = false, 또는 menu-data.js의 soldOut: true). 종류(variants)가 모두 품절이면 메뉴 전체가 품절
 const isSoldOut = (item) => Boolean(item.soldOut) || Boolean(item.variants && item.variants.every((v) => v.soldOut));
 const lineSoldOut = (item, line) => isSoldOut(item)
   || Boolean(line.variant && item.variants && (item.variants.find((v) => v.label === line.variant) || {}).soldOut);
@@ -70,12 +75,18 @@ function chip(id, label, count) {
   ]);
 }
 
-filterEl.append(chip('all', '전체'));
-GROUPS.forEach((group) => {
-  CATEGORIES.filter((c) => c.group === group.id).forEach((c) => filterEl.append(chip(c.id, c.ko, c.items.length)));
-});
+function renderMenu() {
+  filterEl.replaceChildren(chip('all', '전체'));
+  gridEl.replaceChildren();
+  menuGroups.forEach((group) => {
+    menuCats.filter((c) => c.group === group.id).forEach((c) => filterEl.append(chip(c.id, c.ko, c.items.length)));
+  });
 
-CATEGORIES.forEach((cat) => {
+  menuCats.forEach(renderCategory);
+  validIds = new Set(['all', ...menuCats.map((c) => c.id)]);
+}
+
+function renderCategory(cat) {
   const list = el('ul', { class: 'order-grid__list' });
   cat.items.forEach((item) => {
     const soldOut = isSoldOut(item);
@@ -107,9 +118,9 @@ CATEGORIES.forEach((cat) => {
     ]),
     list,
   ]));
-});
+}
 
-const validIds = new Set(['all', ...CATEGORIES.map((c) => c.id)]);
+let validIds = new Set(['all']);
 
 function applyFilter(id) {
   const filter = validIds.has(id) ? id : 'all';
@@ -130,7 +141,6 @@ filterEl.addEventListener('click', (e) => {
   if (btn) applyFilter(btn.dataset.filter);
 });
 window.addEventListener('hashchange', () => applyFilter(location.hash.slice(1)));
-applyFilter(location.hash.slice(1) || 'all');
 
 /* ---------- 장바구니 데이터 ---------- */
 
@@ -428,6 +438,11 @@ async function fillMemberPhone() {
 // 장바구니 한 줄(메뉴 이름·종류·옵션 이름)을 DB의 id로 바꿔서 place_order()에 넘길 모양으로 만듦
 // p_items 예: [{ menu_id: 2, quantity: 2, temp: 'ice', option_ids: [2] }, { menu_id: 61, variant_id: 1, quantity: 1 }]
 async function toOrderItems(lines) {
+  // Supabase에서 받은 메뉴면 id가 이미 있으니 그대로 씀
+  const byId = lines.map(idsFromMenu);
+  if (byId.every(Boolean)) return byId;
+
+  // menu-data.js 메뉴로 그린 경우: 이름으로 DB id를 찾음
   const [menus, variants, options] = await Promise.all([
     window.sb.from('menus').select('id, category_id, name'),
     window.sb.from('menu_variants').select('id, menu_id, label'),
@@ -455,6 +470,25 @@ async function toOrderItems(lines) {
     }
     return item;
   });
+}
+
+// 화면 메뉴에 DB id가 있으면 place_order()에 넘길 한 줄을 만들고, 하나라도 없으면 null
+function idsFromMenu(line) {
+  const item = findItem(findCat(line.catId), line.name);
+  if (!item || item.id == null) return null;
+  const order = { menu_id: item.id, quantity: line.qty };
+  if (line.temp) order.temp = line.temp;
+  if (line.variant) {
+    const variant = (item.variants || []).find((v) => v.label === line.variant);
+    if (!variant || variant.id == null) return null;
+    order.variant_id = variant.id;
+  }
+  if (line.options.length) {
+    const options = line.options.map((label) => (item.options || []).find((o) => o.label === label));
+    if (options.some((o) => !o || o.id == null)) return null;
+    order.option_ids = options.map((o) => o.id);
+  }
+  return order;
 }
 
 cartSubmit.addEventListener('click', () => {
@@ -518,8 +552,43 @@ confirmDlg.querySelector('.js-confirm-back').addEventListener('click', () => con
 complete.querySelector('.js-complete-close').addEventListener('click', () => confirmDlg.close());
 confirmDlg.addEventListener('click', (e) => { if (e.target === confirmDlg) confirmDlg.close(); });
 
-const removedSoldOut = load();
-renderCart();
-if (removedSoldOut.length) {
-  showToast(`품절된 메뉴(${[...new Set(removedSoldOut)].join(', ')})를 장바구니에서 뺐어요`);
+/* ---------- 시작 ---------- */
+
+function showMenu({ groups, categories }, filter) {
+  menuGroups = groups;
+  menuCats = categories;
+  renderMenu();
+  applyFilter(filter);
 }
+
+// 장바구니를 지금 메뉴 기준으로 다시 확인 (없어졌거나 품절된 메뉴는 뺌)
+function refreshCart() {
+  const removed = load();
+  renderCart();
+  if (removed.length) showToast(`품절된 메뉴(${[...new Set(removed)].join(', ')})를 장바구니에서 뺐어요`);
+}
+
+const menuKey = (data) => JSON.stringify([data.groups, data.categories]);
+
+async function initOrder() {
+  // 1) 기다리지 않고 바로 그리기 (지난번 Supabase 메뉴 → 없으면 menu-data.js)
+  let shown = null;
+  try {
+    shown = window.loadMenuQuick ? window.loadMenuQuick() : { groups: GROUPS, categories: CATEGORIES };
+  } catch (err) {
+    shown = { groups: GROUPS, categories: CATEGORIES };
+  }
+  showMenu(shown, location.hash.slice(1) || 'all');
+  refreshCart();
+
+  // 2) Supabase 최신 메뉴(품절 포함)가 오면, 달라진 경우에만 다시 그리기
+  if (!window.loadMenu) return;
+  const fresh = await window.loadMenu();
+  if (fresh && menuKey(fresh) !== menuKey(shown)) {
+    const current = filterEl.querySelector('.chip[aria-pressed="true"]');
+    showMenu(fresh, current ? current.dataset.filter : 'all');
+    refreshCart();
+  }
+}
+
+initOrder();

@@ -39,9 +39,9 @@ CATEGORIES.forEach((c, ci) => {
   c.items.forEach((m, mi) => {
     const hasVariants = Array.isArray(m.variants) && m.variants.length > 0;
     out.push(
-      `INSERT INTO menus (category_id, name, description, price, temp, has_caffeine, has_milk, sort_order) VALUES ` +
+      `INSERT INTO menus (category_id, name, description, price, temp, has_caffeine, has_milk, is_available, sort_order) VALUES ` +
         `(${q(c.id)}, ${q(m.name)}, ${q(m.desc)}, ${hasVariants ? 'NULL' : won(m.price)}, ${temp(m, 'temp')}, ` +
-        `${b(m.caffeine)}, ${m.milk ? 'true' : 'false'}, ${mi + 1});`
+        `${b(m.caffeine)}, ${m.milk ? 'true' : 'false'}, ${m.soldOut ? 'false' : 'true'}, ${mi + 1});`
     );
     const thisMenu = `(SELECT id FROM menus WHERE category_id = ${q(c.id)} AND name = ${q(m.name)})`;
     (m.variants || []).forEach((v, vi) => {

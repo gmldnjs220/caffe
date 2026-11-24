@@ -32,13 +32,13 @@
     const variantsByMenu = new Map();
     variants.sort(bySort).forEach((v) => {
       if (!variantsByMenu.has(v.menu_id)) variantsByMenu.set(v.menu_id, []);
-      variantsByMenu.get(v.menu_id).push({ label: v.label, price: toK(v.price) });
+      variantsByMenu.get(v.menu_id).push({ id: v.id, label: v.label, price: toK(v.price) });
     });
 
     const optionsByMenu = new Map();
     options.sort(bySort).forEach((o) => {
       if (!optionsByMenu.has(o.menu_id)) optionsByMenu.set(o.menu_id, []);
-      optionsByMenu.get(o.menu_id).push({ label: o.label, price: toK(o.extra_price) });
+      optionsByMenu.get(o.menu_id).push({ id: o.id, label: o.label, price: toK(o.extra_price) });
     });
 
     const itemsByCat = new Map();
@@ -49,6 +49,8 @@
         desc: m.description || '',
         available: m.is_available,
       };
+      // 품절: DB의 is_available = false (Supabase Table Editor에서 체크를 끄면 품절)
+      if (m.is_available === false) item.soldOut = true;
       if (m.price != null) item.price = toK(m.price);
       // 메뉴에 값이 있을 때만 넣어요. 없으면 카테고리 값을 따라가요 (menu.js 의 'temp' in item 규칙)
       if (m.temp != null) item.temp = toTemp(m.temp);

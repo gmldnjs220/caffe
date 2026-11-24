@@ -195,8 +195,8 @@ function openSheet(cat, item) {
 
   sheetPrice.replaceChildren(
     ...(item.variants
-      ? item.variants.map((v) => el('div', { class: 'sheet__variant' }, [
-        el('span', { text: v.label }),
+      ? item.variants.map((v) => el('div', { class: v.soldOut ? 'sheet__variant is-soldout' : 'sheet__variant' }, [
+        el('span', { text: v.soldOut ? `${v.label} (품절)` : v.label }),
         el('strong', { text: won(v.price) }),
       ]))
       : [el('strong', { text: won(item.price) })]),
@@ -204,6 +204,7 @@ function openSheet(cat, item) {
   sheetPrice.classList.toggle('has-variants', Boolean(item.variants));
 
   const tags = [];
+  if (item.soldOut) tags.push(el('li', { class: 'tag tag--soldout', text: '품절' }));
   if (temp) TEMP_LABEL[temp].forEach((t) => tags.push(el('li', { class: `tag tag--${t.cls}`, text: t.text })));
   if (caffeine === true) tags.push(el('li', { class: 'tag', text: '카페인' }));
   if (caffeine === false) tags.push(el('li', { class: 'tag', text: '논카페인' }));
