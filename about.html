@@ -50,8 +50,11 @@
       <ul>
         <li><a href="about.html" aria-current="page">소개</a></li>
         <li><a href="menu.html">메뉴</a></li>
+        <li><a href="order.html">주문</a></li>
         <li><a href="notice.html">공지사항</a></li>
+        <li><a href="review.html">리뷰</a></li>
         <li><a href="location.html">오시는 길</a></li>
+        <li><a href="login.html" data-auth-link data-label-in="내 계정">로그인</a></li>
       </ul>
     </nav>
   </header>
@@ -59,22 +62,22 @@
   <main class="content-page content-page--center">
     <header class="page-head">
       <p class="page-head__eyebrow">About</p>
-      <h1 class="page-head__title">안양예술공원 카페, 원보틀</h1>
-      <p class="page-head__desc">신선한 재료로 커피와 디저트를 준비합니다.</p>
+      <h1 class="page-head__title" data-text-key="about.head.title" data-text-label="소개 제목">안양예술공원 카페, 원보틀</h1>
+      <p class="page-head__desc" data-text-key="about.head.desc" data-text-label="소개 부제목">신선한 재료로 커피와 디저트를 준비합니다.</p>
     </header>
 
     <!-- 소개글 -->
     <section class="about-intro" aria-label="원보틀 소개">
       <p class="about-intro__since" aria-hidden="true">
-        <span class="about-intro__num">8</span>
+        <span class="about-intro__num" data-text-key="about.since.num" data-text-label="운영 연수 숫자" data-text-single>8</span>
         <span class="about-intro__unit">Years<br>in Anyang</span>
       </p>
       <div class="about-intro__text">
-        <p class="about-intro__lead">안양예술공원 카페 원보틀입니다.</p>
-        <p><em>8년간</em> 안양 유원지에서 운영하고 있으며<br>
+        <p class="about-intro__lead" data-text-key="about.lead" data-text-label="소개 첫 줄">안양예술공원 카페 원보틀입니다.</p>
+        <p data-text-key="about.body" data-text-label="소개글"><em>8년간</em> 안양 유원지에서 운영하고 있으며<br>
           항상 좋은 청결 상태 유지, 신선한 재료로 손님들에게<br>
           좋은 커피와 디저트를 제공하고 있습니다.</p>
-        <p class="about-intro__thanks">찾아주셔서 감사합니다 🙂</p>
+        <p class="about-intro__thanks" data-text-key="about.thanks" data-text-label="소개 끝 인사">찾아주셔서 감사합니다 🙂</p>
       </div>
     </section>
 
@@ -100,7 +103,7 @@
         </ul>
       </div>
 
-      <div class="amenities__group">
+      <div class="amenities__group amenities__group--center">
         <h3 class="amenities__title">주차</h3>
         <ul class="amenities__list">
           <li class="amenity"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 17V7.5h3a2.75 2.75 0 0 1 0 5.5h-3"/></svg><span class="amenity__label">주차 가능 <span class="amenity__badge">무료</span></span></li>
@@ -120,5 +123,9 @@
       </div>
     </section>
   </main>
+  <script type="module" src="js/auth-nav.js"></script>
+  <script defer src="js/supabase-config.js"></script>
+  <script defer src="js/site-content.js"></script>
+  <script type="module" src="js/admin-edit.js"></script>
 </body>
 </html>

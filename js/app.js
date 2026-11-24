@@ -25,7 +25,7 @@
   const sidebar = document.querySelector('.js-sidebar');
   if (!layer || !frame || !sidebar) return;
 
-  const PAGES = ['about', 'notice', 'location', 'menu'];
+  const PAGES = ['about', 'notice', 'location', 'menu', 'order', 'login', 'review'];
   const pageOf = (href) => (href || '').split('#')[0].replace('.html', '');
   const isPage = (href) => PAGES.includes(pageOf(href));
   let current = null;
@@ -95,16 +95,49 @@
     }, 400);
   }
 
-  frame.addEventListener('load', () => layer.classList.remove('is-swapping'));
+  // 로그인 페이지의 화면(로그인 / 회원가입) 고르기 (js/login.js 의 window.selectAuthTab)
+  // 사이드바의 LOGIN은 로그인 화면, SIGN IN은 회원가입 화면으로 열림
+  let pendingTab = null;
+  function pickTab(name) {
+    try {
+      const win = frame.contentWindow;
+      if (win && typeof win.selectAuthTab === 'function') win.selectAuthTab(name);
+    } catch (err) { /* 페이지를 못 읽어도 그냥 로그인 화면으로 열림 */ }
+  }
 
-  // 사이드바 안의 about / notice / location / menu 링크는 메인 안에서 열기
+  // 로그인 페이지가 열려 있을 때 LOGIN / SIGN IN 을 누르면, 다른 메뉴로 갈 때처럼 흐려졌다가 페이드 인
+  function swapTab(name) {
+    try {
+      const signup = frame.contentDocument.querySelector('.js-signup-form');
+      if (signup && signup.hidden === (name !== 'signup')) return; // 이미 그 화면이면 그대로
+    } catch (err) { /* 못 읽으면 그냥 바꿈 */ }
+    layer.classList.add('is-swapping');
+    setTimeout(() => {
+      pickTab(name);
+      layer.classList.remove('is-swapping');
+    }, 250);
+  }
+
+  frame.addEventListener('load', () => {
+    layer.classList.remove('is-swapping');
+    if (pendingTab) pickTab(pendingTab);
+    pendingTab = null;
+  });
+
+  // 사이드바 안의 about / notice / location / menu / order / login / review 링크는 메인 안에서 열기
   sidebar.addEventListener('click', (e) => {
     const a = e.target.closest('a[href]');
     if (!a) return;
     const href = a.getAttribute('href');
     if (isPage(href)) {
       e.preventDefault();
-      openPage(href);
+      // 로그인한 상태(MY ACCOUNT)면 탭을 고르지 않고 그냥 계정 화면을 엶
+      const tab = a.classList.contains('is-signed-in') ? null : a.dataset.tab;
+      if (tab && pageOf(href) === current) swapTab(tab);
+      else {
+        pendingTab = tab || null;
+        openPage(href);
+      }
     } else if (href === 'index.html' && body.classList.contains('is-page-open')) {
       e.preventDefault(); // 로고를 누르면 메인으로 돌아오기
       closePage();

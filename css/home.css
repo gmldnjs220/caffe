@@ -89,12 +89,50 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* 현재 열린 페이지 메뉴 표시 */
-.sidebar__nav a[aria-current="page"] {
-  color: var(--amber);
+/* 현재 열린 페이지 메뉴 표시
+   - 글자 색은 메뉴 종류(흰색: 일반, 주황: MENU·ORDER)만 나타내고 바꾸지 않음
+   - 선택된 메뉴는 왼쪽 주황 막대, 페이지가 열려 있으면 나머지 메뉴는 살짝 흐리게 */
+.sidebar__nav li:not(.sidebar__auth) a {
+  position: relative;
+  transition: color 0.25s ease, opacity 0.25s ease;
 }
 
-.sidebar__accent a[aria-current="page"] {
+.sidebar__nav li:not(.sidebar__auth) a::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 3px;
+  height: 0.9em;
+  border-radius: 2px;
+  background: var(--amber);
+  opacity: 0;
+  transform: translateY(-50%) scaleY(0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.sidebar__nav li:not(.sidebar__auth) a[aria-current="page"]::before {
+  opacity: 1;
+  transform: translateY(-50%) scaleY(1);
+}
+
+.sidebar__nav li:not(.sidebar__auth) a:not([aria-current="page"]):hover::before,
+.sidebar__nav li:not(.sidebar__auth) a:not([aria-current="page"]):focus-visible::before {
+  opacity: 0.45;
+  transform: translateY(-50%) scaleY(1);
+}
+
+.is-page-open .sidebar__nav li:not(.sidebar__auth) a:not([aria-current="page"]) {
+  opacity: 0.55;
+}
+
+.is-page-open .sidebar__nav li:not(.sidebar__auth) a:hover,
+.is-page-open .sidebar__nav li:not(.sidebar__auth) a:focus-visible {
+  opacity: 1;
+}
+
+/* LOGIN / SIGN IN 은 작은 글씨라 막대 대신 밝은 글씨로 */
+.sidebar__nav .sidebar__auth a[aria-current="page"] {
   color: var(--paper);
 }
 
@@ -199,7 +237,7 @@
 /* 큰 메뉴 목록 — 로고 바로 아래, 왼쪽 정렬을 유지하면서 살짝 안쪽으로 */
 .sidebar__nav ul {
   list-style: none;
-  margin: 80px 0 0;
+  margin: 52px 0 0;
   padding: 0 0 0 14px;
 }
 
@@ -213,14 +251,14 @@
   transition: color 0.25s ease;
 }
 
-.sidebar__nav a:hover,
-.sidebar__nav a:focus-visible {
-  color: var(--amber);
-}
-
 /* 강조 메뉴 하나 */
 .sidebar__accent {
   margin-top: 18px;
+}
+
+/* 강조 메뉴가 연달아 있으면(MENU, ORDER) 한 묶음으로 붙여 둠 */
+.sidebar__accent + .sidebar__accent {
+  margin-top: 0;
 }
 
 .sidebar__accent a {
@@ -228,9 +266,29 @@
   font-weight: 600;
 }
 
-.sidebar__accent a:hover,
-.sidebar__accent a:focus-visible {
-  color: var(--paper);
+/* 로그인 / 회원가입: ABOUT 위에 작은 글씨로 나란히 */
+.sidebar__auth {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sidebar__nav .sidebar__auth a {
+  padding: 2px 0;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--paper-dim);
+}
+
+.sidebar__nav .sidebar__auth a:hover,
+.sidebar__nav .sidebar__auth a:focus-visible {
+  color: var(--amber);
+}
+
+/* 로그인한 뒤에는 LOGIN 자리에 MY ACCOUNT만 보이고 SIGN IN은 숨김 */
+.sidebar__auth a.is-signed-in ~ a {
+  display: none;
 }
 
 .sidebar__icon {

@@ -21,9 +21,61 @@
 /* ---------- 카테고리 필터 ---------- */
 
 .filter {
+  position: relative;
   margin: 36px 0 0;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);   /* ABOUT 분리선과 같은 양식, 길이는 메뉴판 폭에 맞춤 */
+}
+
+/* 좌우 화살표 (js/filter-arrows.js). 더 넘길 버튼이 없는 쪽은 숨김 */
+.filter__arrow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.filter__arrow[hidden] {
+  display: none;
+}
+
+/* 동그라미(38px)의 반만큼 바깥으로 빼서 걸쳐 보이게 함 */
+.filter__arrow--prev {
+  left: -19px;
+}
+
+.filter__arrow--next {
+  right: -19px;
+}
+
+.filter__arrow svg {
+  box-sizing: content-box;
+  padding: 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--ink);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.filter__arrow:hover svg {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.filter__arrow:focus-visible {
+  outline: none;
+}
+
+.filter__arrow:focus-visible svg {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
 .filter__scroll {
@@ -36,6 +88,16 @@
 
 .filter__scroll::-webkit-scrollbar {
   display: none;
+}
+
+/* 메뉴 페이지: 버튼이 한 줄에 다 들어가면 아래 선 기준 가운데 정렬
+   (justify-content: center 대신 양 끝 auto 여백을 써서, 넘칠 때는 왼쪽부터 스크롤되게 함) */
+.content-page--menu .filter__scroll > :first-child {
+  margin-left: auto;
+}
+
+.content-page--menu .filter__scroll > :last-child {
+  margin-right: auto;
 }
 
 .chip {
@@ -121,6 +183,7 @@
 
 .menu-cat__head {
   display: flex;
+  flex-wrap: wrap; /* 좁으면 설명이 아랫줄로 내려감 */
   align-items: baseline;
   gap: 10px;
   padding-bottom: 10px;
@@ -139,6 +202,7 @@
 .menu-cat__ko {
   font-size: 13px;
   color: var(--paper-dim);
+  white-space: nowrap; /* "빙수"가 세로로 쪼개지지 않게 */
 }
 
 .menu-cat__meta {
@@ -437,4 +501,40 @@
   .sheet[open]::backdrop {
     animation: none;
   }
+}
+
+/* ---------- 품절 (menu-data.js의 soldOut: true) ---------- */
+
+.soldout-badge {
+  flex-shrink: 0;
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border: 1px solid rgba(224, 120, 106, 0.6);
+  border-radius: 999px;
+  color: #e0786a;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: 0.15em;
+}
+
+.menu-item.is-soldout .menu-item__name,
+.menu-item.is-soldout .menu-item__price {
+  color: rgba(246, 241, 234, 0.45);
+}
+
+.menu-item.is-soldout .menu-item__price {
+  text-decoration: line-through;
+}
+
+.sheet__variant.is-soldout strong {
+  color: rgba(246, 241, 234, 0.45);
+  text-decoration: line-through;
+}
+
+.tag--soldout {
+  border-color: rgba(224, 120, 106, 0.6);
+  color: #e0786a;
+  font-weight: 600;
 }

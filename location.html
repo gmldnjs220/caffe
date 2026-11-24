@@ -50,8 +50,11 @@
       <ul>
         <li><a href="about.html">소개</a></li>
         <li><a href="menu.html">메뉴</a></li>
+        <li><a href="order.html">주문</a></li>
         <li><a href="notice.html">공지사항</a></li>
+        <li><a href="review.html">리뷰</a></li>
         <li><a href="location.html" aria-current="page">오시는 길</a></li>
+        <li><a href="login.html" data-auth-link data-label-in="내 계정">로그인</a></li>
       </ul>
     </nav>
   </header>
@@ -65,20 +68,17 @@
     <dl class="info-section visit-list">
       <div>
         <dt>주소</dt>
-        <dd>경기도 안양시 만안구 석수동 850-5 1층</dd>
+        <dd data-text-key="location.address" data-text-label="오시는 길 주소">경기도 안양시 만안구 석수동 850-5 1층</dd>
       </div>
       <div>
         <dt>전화</dt>
-        <dd><a href="tel:031-471-3271">031-471-3271</a></dd>
+        <dd><a href="tel:031-471-3271" data-text-key="shop.phone" data-text-label="전화번호" data-text-single data-text-default="031-471-3271" data-text-href="tel">031-471-3271</a></dd>
       </div>
       <div>
         <dt>영업시간</dt>
         <dd>
-          <ul class="visit-hours">
-            <li><span>월 · 수 · 목</span> <time>11:30–21:00</time></li>
-            <li><span>화 · 금</span> <time>11:30–18:00</time></li>
-            <li><span>토 · 일</span> <time>11:00–19:30</time></li>
-          </ul>
+          <!-- 영업시간은 js/hours.js에서 채움 -->
+          <ul class="visit-hours" data-hours-list="table"></ul>
         </dd>
       </div>
     </dl>
@@ -91,5 +91,10 @@
       <a href="https://naver.me/Fw7P3RqZ">네이버 지도에서 보기</a>
     </div>
   </main>
+  <script src="js/hours.js"></script>
+  <script type="module" src="js/auth-nav.js"></script>
+  <script defer src="js/supabase-config.js"></script>
+  <script defer src="js/site-content.js"></script>
+  <script type="module" src="js/admin-edit.js"></script>
 </body>
 </html>
