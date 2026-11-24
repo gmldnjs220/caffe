@@ -147,6 +147,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 오늘 요일 줄 강조 */
+.visit-hours li.is-today span,
+.visit-hours li.is-today time {
+  color: var(--amber);
+}
+
+/* 임시 휴무, 단축 영업 */
+.visit-hours li.is-special {
+  display: block;
+  color: var(--amber);
+}
+
 /* ---------- 오시는 길: 약도 ---------- */
 
 .visit-map {

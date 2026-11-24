@@ -76,11 +76,8 @@
       <div>
         <dt>영업시간</dt>
         <dd>
-          <ul class="visit-hours">
-            <li><span>월 · 수 · 목</span> <time>11:30–21:00</time></li>
-            <li><span>화 · 금</span> <time>11:30–18:00</time></li>
-            <li><span>토 · 일</span> <time>11:00–19:30</time></li>
-          </ul>
+          <!-- 영업시간은 js/hours.js에서 채움 -->
+          <ul class="visit-hours" data-hours-list="table"></ul>
         </dd>
       </div>
     </dl>
@@ -93,6 +90,7 @@
       <a href="https://naver.me/Fw7P3RqZ">네이버 지도에서 보기</a>
     </div>
   </main>
+  <script src="js/hours.js"></script>
   <script type="module" src="js/auth-nav.js"></script>
 </body>
 </html>

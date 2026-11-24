@@ -85,7 +85,8 @@ npm run build
 │  ├─ menu-data.js     예비 메뉴 데이터 (이름, 가격, 설명)
 │  ├─ menu.js          메뉴 페이지 동작 (필터, 상세 보기)
 │  ├─ order.js         주문 페이지 동작 (옵션 고르기, 장바구니)
-│  └─ notice.js        공지사항 열기/닫기 애니메이션
+│  ├─ notice.js        공지사항 열기/닫기 애니메이션
+│  └─ hours.js         영업시간 (홈 사이드바의 오늘 영업시간, 공지사항·오시는 길의 시간표)
 ├─ img/
 │  ├─ logo-white.png           사이드바 로고
 │  ├─ og-image.jpg             카카오톡/SNS 공유 미리보기 이미지
@@ -111,7 +112,7 @@ npm run build
 
 | 바꾸고 싶은 것 | 파일 | 찾을 내용 |
 |---|---|---|
-| 영업시간 | `notice.html`, `location.html`, `index.html` | 세 곳 모두 같이 고쳐야 함 (공지사항 `id="hours"`, 오시는 길 `visit-hours`, 홈 사이드바 `sidebar__info`) |
+| 영업시간, 임시 휴무 | `js/hours.js` | 이 파일만 고치면 홈 사이드바(오늘 요일의 영업시간), 공지사항, 오시는 길에 모두 반영됨 |
 | 전화번호, 주소 | `index.html`, `location.html` | `tel:`, `석수동` |
 | 메뉴, 가격 | `js/menu-data.js` | 메뉴 이름으로 검색 |
 | 홈 슬라이드 사진 | `index.html` | `hero__slides` 안의 `<figure class="slide">`. 첫 장만 `src`, 나머지는 `data-src`로 적어야 함 |

@@ -33,6 +33,7 @@ module.exports = merge(common, {
         { from: 'js/order.js', to: 'js/order.js' },
         { from: 'js/filter-arrows.js', to: 'js/filter-arrows.js' },
         { from: 'js/notice.js', to: 'js/notice.js' },
+        { from: 'js/hours.js', to: 'js/hours.js' },
         { from: 'icon.svg', to: 'icon.svg' },
         { from: 'favicon.ico', to: 'favicon.ico' },
         { from: 'robots.txt', to: 'robots.txt' },

@@ -72,11 +72,8 @@
           <time datetime="2026-11-02">2026.11.02</time>
         </summary>
         <div class="notice-body">
-          <ul>
-            <li>월 · 수 · 목 11:30–21:00</li>
-            <li>화 · 금 11:30–18:00</li>
-            <li>토 · 일 11:00–19:30</li>
-          </ul>
+          <!-- 영업시간은 js/hours.js에서 채움 -->
+          <ul data-hours-list="plain"></ul>
           <p>매장 위치는 <a href="location.html">오시는 길</a>에서 확인하실 수 있어요.</p>
         </div>
       </details>
@@ -109,6 +106,7 @@
       </details>
     </div>
   </main>
+  <script src="js/hours.js"></script>
   <script src="js/notice.js"></script>
   <script type="module" src="js/auth-nav.js"></script>
 </body>
