@@ -1,7 +1,7 @@
 // 리뷰 페이지: 리뷰 목록 + 리뷰 쓰기 (review-data.js 다음에 실행)
 // - 목록: 손님이 직접 쓴 리뷰(Supabase reviews) → review-data.js 리뷰 순서. 10개씩 페이지로 나눔
-// - 쓰기: 주문할 때 적은 휴대폰 번호로 그 번호의 주문 메뉴를 불러와서(get_reviewable_items)
-//         고른 메뉴 하나에 리뷰 하나 (write_review). 번호는 공개 안 됨
+// - 쓰기: 주문할 때 적은 휴대폰 번호로 그 번호의 주문을 불러와서(get_reviewable_orders)
+//         고른 주문 한 건에 리뷰 하나 (write_review). 번호는 공개 안 됨
 
 const $ = (sel) => document.querySelector(sel);
 const listEl = $('.js-list');
@@ -136,7 +136,7 @@ async function loadGuestReviews() {
   if (!sb) return;
   try {
     const [reviews, menus] = await Promise.all([
-      sb.from('reviews').select('id, menu_id, nickname, rating, content, created_at')
+      sb.from('reviews').select('id, menu_id, order_menus, nickname, rating, content, created_at')
         .eq('is_hidden', false).order('created_at', { ascending: false }).limit(300),
       sb.from('menus').select('id, name').order('id'),
     ]);
@@ -149,7 +149,7 @@ async function loadGuestReviews() {
       text: r.content,
       rating: r.rating,
       tags: [],
-      menu: menuNames.get(r.menu_id),
+      menu: r.order_menus || menuNames.get(r.menu_id), // 주문 리뷰는 그 주문의 메뉴 이름
     }));
     render(currentPage);
   } catch (err) {
@@ -172,15 +172,22 @@ const phoneDigits = (v) => v.replace(/[^0-9]/g, '');
 const isPhone = (digits) => /^01[0-9]{8,9}$/.test(digits);
 let lookedUpPhone = '';
 
+// 예: "2026.11.24 · 주문번호 12 · 아메리카노, 카페라떼"
+function orderLabel(o) {
+  const menus = o.menus || '';
+  const short = menus.length > 28 ? `${menus.slice(0, 28)}…` : menus;
+  return `${dateText(o.order_date)} · 주문번호 ${o.order_no}${short ? ` · ${short}` : ''}`;
+}
+
 function setItemOptions(placeholder, items = []) {
   itemSelect.replaceChildren(
     el('option', { value: '', text: placeholder }),
-    ...items.map((it) => el('option', { value: String(it.order_item_id), text: `${it.menu_name} · ${dateText(it.order_date)} 주문` })),
+    ...items.map((o) => el('option', { value: String(o.order_id), text: orderLabel(o) })),
   );
   itemSelect.disabled = items.length === 0;
 }
 
-// 번호로 주문한 메뉴 중 아직 리뷰 안 쓴 것 불러오기
+// 번호로 한 주문 중 아직 리뷰 안 쓴 것 불러오기
 async function lookupItems() {
   const phone = phoneDigits(writeForm.elements.phone.value);
   if (!isPhone(phone)) {
@@ -192,33 +199,33 @@ async function lookupItems() {
   if (!sb) { showWriteError('리뷰 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.'); return; }
 
   lookupBtn.disabled = true;
-  setItemOptions('주문 메뉴를 찾는 중…');
+  setItemOptions('주문을 찾는 중…');
   try {
-    const { data, error } = await sb.rpc('get_reviewable_items', { p_phone: phone });
+    const { data, error } = await sb.rpc('get_reviewable_orders', { p_phone: phone });
     if (error) throw error;
     lookedUpPhone = phone;
     if (data.length) {
-      setItemOptions('메뉴를 골라 주세요', data);
-      if (data.length === 1) itemSelect.value = String(data[0].order_item_id);
+      setItemOptions('주문을 골라 주세요', data);
+      if (data.length === 1) itemSelect.value = String(data[0].order_id);
     } else {
       setItemOptions('리뷰를 쓸 수 있는 주문이 없어요');
-      showWriteError('이 번호로 최근 30일 안에 주문한 메뉴가 없거나, 이미 모두 리뷰를 썼어요.');
+      showWriteError('이 번호로 최근 30일 안에 한 주문이 없거나, 이미 모두 리뷰를 썼어요.');
     }
   } catch (err) {
     console.error('[review]', err);
-    setItemOptions('번호를 넣고 주문 메뉴 찾기를 눌러 주세요');
-    showWriteError(err.message || '주문 메뉴를 불러오지 못했어요.');
+    setItemOptions('번호를 넣고 주문 찾기를 눌러 주세요');
+    showWriteError(err.message || '주문을 불러오지 못했어요.');
   } finally {
     lookupBtn.disabled = false;
   }
 }
 
 lookupBtn.addEventListener('click', lookupItems);
-// 번호를 바꾸면 불러온 메뉴는 다시 찾아야 함
+// 번호를 바꾸면 불러온 주문은 다시 찾아야 함
 writeForm.elements.phone.addEventListener('input', () => {
   if (lookedUpPhone && phoneDigits(writeForm.elements.phone.value) !== lookedUpPhone) {
     lookedUpPhone = '';
-    setItemOptions('번호를 넣고 주문 메뉴 찾기를 눌러 주세요');
+    setItemOptions('번호를 넣고 주문 찾기를 눌러 주세요');
   }
 });
 writeForm.elements.phone.addEventListener('keydown', (e) => {
@@ -248,7 +255,7 @@ writeForm.addEventListener('submit', async (e) => {
   const rating = Number(f.rating.value);
 
   if (!isPhone(phone)) { showWriteError('휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)'); f.phone.focus(); return; }
-  if (phone !== lookedUpPhone || !itemSelect.value) { showWriteError('주문 메뉴 찾기를 누르고 리뷰 쓸 메뉴를 골라 주세요.'); (phone !== lookedUpPhone ? lookupBtn : itemSelect).focus(); return; }
+  if (phone !== lookedUpPhone || !itemSelect.value) { showWriteError('주문 찾기를 누르고 리뷰 쓸 주문을 골라 주세요.'); (phone !== lookedUpPhone ? lookupBtn : itemSelect).focus(); return; }
   if (!nickname) { showWriteError('닉네임을 적어 주세요.'); f.nickname.focus(); return; }
   if (content.length < 5) { showWriteError('리뷰를 5자 이상 적어 주세요.'); f.content.focus(); return; }
 
@@ -263,13 +270,13 @@ writeForm.addEventListener('submit', async (e) => {
       p_nickname: nickname,
       p_rating: rating,
       p_content: content,
-      p_order_item_id: Number(itemSelect.value),
+      p_order_id: Number(itemSelect.value),
     });
     if (error) throw error;
     writeForm.reset();
     writeCount.textContent = '0';
     lookedUpPhone = '';
-    setItemOptions('번호를 넣고 주문 메뉴 찾기를 눌러 주세요');
+    setItemOptions('번호를 넣고 주문 찾기를 눌러 주세요');
     writeDlg.close();
     await loadGuestReviews();
     render(1);

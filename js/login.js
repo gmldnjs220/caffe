@@ -254,10 +254,14 @@ function readReturnError() {
 /* ---------- Supabase 연결 ---------- */
 
 // 로그인 정보가 없고 로그인하고 돌아온 주소도 아니면, Supabase를 기다리지 않고 로그인 칸부터 보여 줌
-// (로그인 정보가 있으면 내 계정 화면이 맞을 수 있어서 확인이 끝날 때까지 기다림)
+// 로그인 정보가 남아 있어도 지난번에 로그아웃 상태였으면(auth-nav.js가 저장한 표시) 바로 보여 줌
+// (지난번에 로그인 상태였으면 내 계정 화면이 맞을 수 있어서 확인이 끝날 때까지 기다림)
 let ready = false;
 const returning = /access_token|refresh_token|[?&#]code=|error/.test(location.hash + location.search);
-if (!hasStoredSession() && !returning) {
+const lastSignedIn = (() => {
+  try { return localStorage.getItem('onebottle-signed-in') === '1'; } catch (err) { return false; }
+})();
+if ((!hasStoredSession() || !lastSignedIn) && !returning) {
   signedOut.hidden = false;
   root.setAttribute('aria-busy', 'false');
 }
