@@ -183,6 +183,7 @@
 
 .menu-cat__head {
   display: flex;
+  flex-wrap: wrap; /* 좁으면 설명이 아랫줄로 내려감 */
   align-items: baseline;
   gap: 10px;
   padding-bottom: 10px;
@@ -201,6 +202,7 @@
 .menu-cat__ko {
   font-size: 13px;
   color: var(--paper-dim);
+  white-space: nowrap; /* "빙수"가 세로로 쪼개지지 않게 */
 }
 
 .menu-cat__meta {

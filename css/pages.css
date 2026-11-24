@@ -318,6 +318,15 @@
   padding: 0;
 }
 
+/* 주차: 제목 "주차"와 아이콘을 같은 가운데 선에 맞춤 */
+.amenities__group--center .amenities__title {
+  text-align: center;
+}
+
+.amenities__group--center .amenities__list {
+  justify-content: center;
+}
+
 .amenity {
   display: flex;
   flex-direction: column;
