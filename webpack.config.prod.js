@@ -31,6 +31,7 @@ module.exports = merge(common, {
         { from: 'js/menu-api.js', to: 'js/menu-api.js' },
         { from: 'js/menu.js', to: 'js/menu.js' },
         { from: 'js/order.js', to: 'js/order.js' },
+        { from: 'js/filter-arrows.js', to: 'js/filter-arrows.js' },
         { from: 'js/notice.js', to: 'js/notice.js' },
         { from: 'icon.svg', to: 'icon.svg' },
         { from: 'favicon.ico', to: 'favicon.ico' },

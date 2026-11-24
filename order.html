@@ -72,12 +72,9 @@
 
     <div class="order-layout">
       <section class="order-menu" aria-label="메뉴 고르기">
-        <div class="order-filter">
-          <label class="order-filter__label" for="order-cat">카테고리</label>
-          <div class="select">
-            <select class="select__input js-filter" id="order-cat"></select>
-            <svg class="select__arrow" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+        <!-- 카테고리 버튼: 메뉴 페이지와 같은 모양(menu.css의 .filter, .chip) -->
+        <div class="filter order-filter" role="toolbar" aria-label="카테고리 선택">
+          <div class="filter__scroll js-filter"></div>
         </div>
         <div class="order-grid js-grid"></div>
       </section>
@@ -142,7 +139,7 @@
 
   <!-- 주문 내역 확인 -->
   <dialog class="sheet js-confirm" aria-labelledby="confirm-title">
-    <div class="sheet__inner">
+    <div class="sheet__inner js-confirm-main">
       <button type="button" class="sheet__close js-confirm-close" aria-label="닫기">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
@@ -153,17 +150,40 @@
         <span>합계</span>
         <strong class="js-confirm-total">0원</strong>
       </div>
-      <!-- TODO: 실제 주문 접수(서버 전송)는 아직 연결 전. 연결되면 이 안내 문구를 바꿔 주세요 -->
-      <p class="confirm__note">온라인 주문 접수는 아직 준비 중이에요. 이 화면을 카운터에 보여 주시면 바로 주문을 도와드릴게요.</p>
-      <div class="confirm__actions">
-        <button type="button" class="btn js-confirm-back">계속 담기</button>
-        <button type="button" class="btn btn--primary js-confirm-done">확인하고 비우기</button>
+      <!-- 결제는 아직 없음: 주문 내용만 DB(place_order 함수)에 저장하고 완료 안내를 보여 줌 -->
+      <form class="confirm__form js-confirm-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="order-phone">휴대폰 번호 <span class="field__req">(필수)</span></label>
+          <input class="field__input js-order-phone" id="order-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="13" placeholder="010-1234-5678" aria-describedby="order-phone-hint" required>
+          <p class="field__hint" id="order-phone-hint">메뉴가 준비되면 이 번호로 알려 드려요</p>
+        </div>
+        <p class="confirm__error js-confirm-error" role="alert" hidden></p>
+        <div class="confirm__actions">
+          <button type="button" class="btn js-confirm-back">계속 담기</button>
+          <button type="submit" class="btn btn--primary js-confirm-done">주문하기</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 주문 완료 -->
+    <div class="sheet__inner confirm__complete js-complete" hidden>
+      <p class="sheet__cat">ORDER</p>
+      <h2 class="sheet__title" id="complete-title">주문이 완료되었습니다</h2>
+      <p class="confirm__no">주문번호 <strong class="js-complete-no"></strong></p>
+      <p class="confirm__note">결제는 카운터에서 도와드릴게요. 주문번호를 말씀해 주세요.</p>
+      <div class="confirm__actions confirm__actions--one">
+        <button type="button" class="btn btn--primary js-complete-close">확인</button>
       </div>
     </div>
   </dialog>
 
+  <script defer src="js/supabase-config.js"></script>
   <script defer src="js/menu-data.js"></script>
   <script defer src="js/order.js"></script>
+  <script defer src="js/filter-arrows.js"></script>
+  <!-- 주문 저장(Supabase). 버전을 올릴 때는 menu.html 의 주소와 같이 바꿔 주세요 -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script defer src="js/supabase-client.js"></script>
 
 </body>
 

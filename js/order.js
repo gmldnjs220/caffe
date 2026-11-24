@@ -1,6 +1,7 @@
 // 주문 페이지: 메뉴 고르기 + 장바구니 (menu-data.js 다음에 실행)
 // - 가격은 menu-data.js의 1,000원 단위 값을 원 단위 정수로 바꿔서 계산함 (소수점 오차 방지)
 // - 장바구니는 이 브라우저에만 저장됨(localStorage). 다른 기기와는 공유되지 않음
+// - 주문하기: 전화번호(필수)와 함께 Supabase place_order() 함수로 DB에 저장 (결제 단계는 아직 없음)
 
 const filterEl = document.querySelector('.js-filter');
 const gridEl = document.querySelector('.js-grid');
@@ -60,13 +61,18 @@ function choiceText(choice) {
   return [choice.temp && TEMP_TEXT[choice.temp], choice.variant, ...choice.options].filter(Boolean).join(' · ');
 }
 
-/* ---------- 카테고리 선택(셀렉트) + 메뉴 목록 ---------- */
+/* ---------- 카테고리 버튼(메뉴 페이지와 같은 모양) + 메뉴 목록 ---------- */
 
-filterEl.append(el('option', { value: 'all', text: '전체 메뉴' }));
+function chip(id, label, count) {
+  return el('button', { type: 'button', class: 'chip', 'data-filter': id, 'aria-pressed': 'false' }, [
+    el('span', { text: label }),
+    count != null ? el('span', { class: 'chip__count', text: String(count) }) : null,
+  ]);
+}
+
+filterEl.append(chip('all', '전체'));
 GROUPS.forEach((group) => {
-  filterEl.append(el('optgroup', { label: group.ko }, CATEGORIES
-    .filter((c) => c.group === group.id)
-    .map((c) => el('option', { value: c.id, text: `${c.ko} (${c.items.length})` }))));
+  CATEGORIES.filter((c) => c.group === group.id).forEach((c) => filterEl.append(chip(c.id, c.ko, c.items.length)));
 });
 
 CATEGORIES.forEach((cat) => {
@@ -107,7 +113,11 @@ const validIds = new Set(['all', ...CATEGORIES.map((c) => c.id)]);
 
 function applyFilter(id) {
   const filter = validIds.has(id) ? id : 'all';
-  filterEl.value = filter;
+  filterEl.querySelectorAll('.chip').forEach((btn) => {
+    const on = btn.dataset.filter === filter;
+    btn.setAttribute('aria-pressed', String(on));
+    if (on) btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  });
   gridEl.querySelectorAll('.order-cat').forEach((sec) => {
     sec.hidden = filter !== 'all' && sec.dataset.cat !== filter;
   });
@@ -115,7 +125,10 @@ function applyFilter(id) {
   if (location.hash !== hash) history.replaceState(null, '', hash || location.href.split('#')[0]);
 }
 
-filterEl.addEventListener('change', () => applyFilter(filterEl.value));
+filterEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.chip');
+  if (btn) applyFilter(btn.dataset.filter);
+});
 window.addEventListener('hashchange', () => applyFilter(location.hash.slice(1)));
 applyFilter(location.hash.slice(1) || 'all');
 
@@ -211,7 +224,20 @@ function renderCart() {
   barCount.textContent = String(count);
   barTotal.textContent = won(total);
   if (cart.length === 0) setCartOpen(false);
+  fitCartList();
 }
+
+// 장바구니에 4줄보다 많이 담으면 4줄 높이까지만 보이고 나머지는 장바구니 안에서 스크롤
+const CART_VISIBLE_LINES = 4;
+
+function fitCartList() {
+  const lines = cartList.children;
+  cartList.style.maxHeight = lines.length > CART_VISIBLE_LINES
+    ? `${lines[CART_VISIBLE_LINES].offsetTop - cartList.offsetTop}px`
+    : '';
+}
+
+window.addEventListener('resize', fitCartList);
 
 cartList.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
@@ -369,8 +395,67 @@ gridEl.addEventListener('click', (e) => {
 /* ---------- 주문 내역 확인 ---------- */
 
 const confirmDlg = document.querySelector('.js-confirm');
+const confirmMain = confirmDlg.querySelector('.js-confirm-main');
 const confirmList = confirmDlg.querySelector('.js-confirm-list');
 const confirmTotal = confirmDlg.querySelector('.js-confirm-total');
+const confirmForm = confirmDlg.querySelector('.js-confirm-form');
+const confirmError = confirmDlg.querySelector('.js-confirm-error');
+const confirmDone = confirmDlg.querySelector('.js-confirm-done');
+const phoneInput = confirmDlg.querySelector('.js-order-phone');
+const complete = confirmDlg.querySelector('.js-complete');
+
+// 숫자만 남긴 전화번호 (DB place_order()와 같은 규칙: 01로 시작하는 10~11자리)
+const phoneDigits = (value) => value.replace(/[^0-9]/g, '');
+const isPhone = (digits) => /^01[0-9]{8,9}$/.test(digits);
+
+function showConfirmError(text) {
+  confirmError.textContent = text;
+  confirmError.hidden = !text;
+}
+
+// 로그인한 회원이면 가입할 때 적은 전화번호를 미리 넣어 둠 (users.phone)
+async function fillMemberPhone() {
+  if (!window.sb || phoneInput.value) return;
+  try {
+    const { data } = await window.sb.auth.getSession();
+    const userId = data.session && data.session.user.id;
+    if (!userId) return;
+    const { data: me } = await window.sb.from('users').select('phone').eq('id', userId).maybeSingle();
+    if (me && me.phone && !phoneInput.value) phoneInput.value = me.phone;
+  } catch (err) { /* 못 불러오면 직접 입력 */ }
+}
+
+// 장바구니 한 줄(메뉴 이름·종류·옵션 이름)을 DB의 id로 바꿔서 place_order()에 넘길 모양으로 만듦
+// p_items 예: [{ menu_id: 2, quantity: 2, temp: 'ice', option_ids: [2] }, { menu_id: 61, variant_id: 1, quantity: 1 }]
+async function toOrderItems(lines) {
+  const [menus, variants, options] = await Promise.all([
+    window.sb.from('menus').select('id, category_id, name'),
+    window.sb.from('menu_variants').select('id, menu_id, label'),
+    window.sb.from('menu_options').select('id, menu_id, label'),
+  ]);
+  const failed = [menus, variants, options].find((r) => r.error);
+  if (failed) throw failed.error;
+
+  return lines.map((line) => {
+    const menu = menus.data.find((m) => m.category_id === line.catId && m.name === line.name);
+    if (!menu) throw new Error(`${line.name}: 지금은 주문할 수 없는 메뉴예요.`);
+    const item = { menu_id: menu.id, quantity: line.qty };
+    if (line.temp) item.temp = line.temp;
+    if (line.variant) {
+      const variant = variants.data.find((v) => v.menu_id === menu.id && v.label === line.variant);
+      if (!variant) throw new Error(`${line.name}: ${line.variant}은(는) 지금 주문할 수 없어요.`);
+      item.variant_id = variant.id;
+    }
+    if (line.options.length) {
+      item.option_ids = line.options.map((label) => {
+        const option = options.data.find((o) => o.menu_id === menu.id && o.label === label);
+        if (!option) throw new Error(`${line.name}: ${label} 옵션은 지금 선택할 수 없어요.`);
+        return option.id;
+      });
+    }
+    return item;
+  });
+}
 
 cartSubmit.addEventListener('click', () => {
   confirmList.replaceChildren(...cart.map((line) => el('li', {}, [
@@ -381,18 +466,56 @@ cartSubmit.addEventListener('click', () => {
     el('strong', { text: won(lineTotal(line)) }),
   ])));
   confirmTotal.textContent = won(cart.reduce((n, l) => n + lineTotal(l), 0));
+  confirmMain.hidden = false;
+  complete.hidden = true;
+  showConfirmError('');
   setCartOpen(false);
   confirmDlg.showModal();
+  fillMemberPhone();
 });
 
+confirmForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const phone = phoneDigits(phoneInput.value);
+  if (!isPhone(phone)) {
+    showConfirmError('휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)');
+    phoneInput.focus();
+    return;
+  }
+  if (!window.sb) {
+    showConfirmError('주문 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+
+  showConfirmError('');
+  confirmDone.disabled = true;
+  confirmDone.textContent = '주문하는 중…';
+  try {
+    const items = await toOrderItems(cart);
+    // 가격은 DB가 메뉴 가격으로 다시 계산해서 저장함 (orders, order_items, order_item_options)
+    const { data, error } = await window.sb.rpc('place_order', { p_phone: phone, p_items: items });
+    if (error) throw error;
+    const order = Array.isArray(data) ? data[0] : data;
+
+    cart = [];
+    save();
+    renderCart();
+    complete.querySelector('.js-complete-no').textContent = order ? String(order.order_no) : '-';
+    confirmMain.hidden = true;
+    complete.hidden = false;
+  } catch (err) {
+    console.error('[order]', err);
+    showConfirmError(err.message || '주문을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+  } finally {
+    confirmDone.disabled = false;
+    confirmDone.textContent = '주문하기';
+  }
+});
+
+phoneInput.addEventListener('input', () => showConfirmError(''));
 confirmDlg.querySelector('.js-confirm-close').addEventListener('click', () => confirmDlg.close());
 confirmDlg.querySelector('.js-confirm-back').addEventListener('click', () => confirmDlg.close());
-confirmDlg.querySelector('.js-confirm-done').addEventListener('click', () => {
-  cart = [];
-  save();
-  renderCart();
-  confirmDlg.close();
-});
+complete.querySelector('.js-complete-close').addEventListener('click', () => confirmDlg.close());
 confirmDlg.addEventListener('click', (e) => { if (e.target === confirmDlg) confirmDlg.close(); });
 
 const removedSoldOut = load();
