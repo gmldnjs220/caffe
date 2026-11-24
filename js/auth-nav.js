@@ -33,7 +33,7 @@ if (links.length) {
   (async () => {
     try {
       const { getSupabaseOrNull } = await import('./supabase-auth.js');
-      const sb = getSupabaseOrNull();
+      const sb = await getSupabaseOrNull();
       if (!sb) {
         show(false);
         return;

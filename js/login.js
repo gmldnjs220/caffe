@@ -3,7 +3,7 @@
 // - Supabase 연결은 js/supabase-auth.js, 연결 정보는 js/supabase-config.js
 // - 회원가입하면 DB의 public.users 프로필이 자동으로 만들어짐 (db/schema.sql의 handle_new_user)
 
-import { getSupabaseOrNull, readKeep, writeKeep } from './supabase-auth.js';
+import { getSupabaseOrNull, hasStoredSession, readKeep, writeKeep } from './supabase-auth.js';
 import { accountRows, displayName, hasPassword } from './account-view.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -253,8 +253,33 @@ function readReturnError() {
 
 /* ---------- Supabase 연결 ---------- */
 
-function start() {
-  const sb = getSupabaseOrNull();
+// 로그인 정보가 없고 로그인하고 돌아온 주소도 아니면, Supabase를 기다리지 않고 로그인 칸부터 보여 줌
+// (로그인 정보가 있으면 내 계정 화면이 맞을 수 있어서 확인이 끝날 때까지 기다림)
+let ready = false;
+const returning = /access_token|refresh_token|[?&#]code=|error/.test(location.hash + location.search);
+if (!hasStoredSession() && !returning) {
+  signedOut.hidden = false;
+  root.setAttribute('aria-busy', 'false');
+}
+
+// 연결이 끝나기 전에 버튼을 누르면 페이지가 새로고침되지 않게 막고 안내만 함
+root.addEventListener('submit', (e) => {
+  if (ready) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  show('로그인 서버에 연결하고 있어요. 잠시 후 다시 눌러 주세요.', 'info');
+}, true);
+
+async function start() {
+  let sb;
+  try {
+    sb = await getSupabaseOrNull();
+  } catch (err) {
+    console.error(err);
+    root.setAttribute('aria-busy', 'false');
+    show('로그인 서버에 연결하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');
+    return;
+  }
   if (!sb) {
     setupAlert.hidden = false;
     root.setAttribute('aria-busy', 'false');
@@ -458,6 +483,8 @@ function start() {
       show('로그아웃했어요.', 'info');
     });
   }));
+
+  ready = true;
 }
 
 start();
