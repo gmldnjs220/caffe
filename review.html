@@ -86,7 +86,7 @@
         네이버에서 리뷰 전체 보기
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <p class="review-cta__note">다녀가셨다면 네이버에 리뷰를 남겨 주세요. 큰 힘이 돼요.</p>
+      <p class="review-cta__note" data-text-key="review.cta.note" data-text-label="리뷰 아래 안내 문구">다녀가셨다면 네이버에 리뷰를 남겨 주세요. 큰 힘이 돼요.</p>
     </div>
   </main>
 
@@ -97,19 +97,19 @@
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
       <h2 class="review-sub" id="write-title">리뷰 쓰기</h2>
-      <p class="review-form__note">주문할 때 적은 휴대폰 번호를 넣으면, 그 번호로 주문한 메뉴(최근 30일) 중에서 골라 리뷰를 쓸 수 있어요. 번호는 다른 사람에게 보이지 않아요.</p>
+      <p class="review-form__note">주문할 때 적은 휴대폰 번호를 넣으면, 그 번호로 한 주문(최근 30일) 중에서 골라 리뷰를 쓸 수 있어요. 주문 한 건에 리뷰 하나예요. 번호는 다른 사람에게 보이지 않아요.</p>
 
       <div class="field">
         <label class="field__label" for="write-phone">휴대폰 번호 <span class="field__req">(필수)</span></label>
         <div class="field__row">
           <input class="field__input" id="write-phone" name="phone" type="tel" inputmode="tel" maxlength="13" autocomplete="tel" placeholder="010-1234-5678" required>
-          <button type="button" class="review-btn review-btn--ghost field__btn js-write-lookup">주문 메뉴 찾기</button>
+          <button type="button" class="review-btn review-btn--ghost field__btn js-write-lookup">주문 찾기</button>
         </div>
       </div>
       <div class="field">
-        <label class="field__label" for="write-item">리뷰 쓸 메뉴 <span class="field__req">(필수)</span></label>
+        <label class="field__label" for="write-item">리뷰 쓸 주문 <span class="field__req">(필수)</span></label>
         <select class="field__input" id="write-item" name="item" required disabled>
-          <option value="">번호를 넣고 주문 메뉴 찾기를 눌러 주세요</option>
+          <option value="">번호를 넣고 주문 찾기를 눌러 주세요</option>
         </select>
       </div>
       <div class="field">
@@ -143,10 +143,12 @@
   <script defer src="js/supabase-config.js"></script>
   <script defer src="js/review-data.js"></script>
   <script defer src="js/review.js"></script>
+  <script defer src="js/site-content.js"></script>
   <!-- Supabase: 손님이 쓴 리뷰 읽기·쓰기. 버전을 올릴 때는 menu.html 의 주소와 같이 바꿔 주세요 -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script defer src="js/supabase-client.js"></script>
   <script type="module" src="js/auth-nav.js"></script>
+  <script type="module" src="js/admin-edit.js"></script>
 
 </body>
 

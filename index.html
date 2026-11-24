@@ -65,12 +65,12 @@
       <a class="sidebar__icon" href="https://naver.me/Fw7P3RqZ" aria-label="네이버 지도에서 원보틀 보기">
         <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path d="M12 21s-6.5-6.1-6.5-11A6.5 6.5 0 0 1 18.5 10c0 4.9-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
       </a>
-      <address class="sidebar__info">
+      <address class="sidebar__info" data-text-key="home.sidebar.address" data-text-label="홈 사이드바 주소">
         경기도 안양시 만안구<br>석수동 850-5 1층
       </address>
 
       <ul class="sidebar__util">
-        <li><b><a href="tel:031-471-3271">call / 031-471-3271</a></b></li>
+        <li><b><a href="tel:031-471-3271" data-text-key="shop.phone" data-text-label="전화번호" data-text-single data-text-template="call / {}" data-text-default="031-471-3271" data-text-href="tel">call / 031-471-3271</a></b></li>
         <li><b data-today-hours>영업시간 / 11:30 - 21:00</b></li>
       </ul>
 
@@ -124,7 +124,7 @@
     <!-- 가운데 상호명 (ONE BOTTLE이 화면 정중앙) -->
     <div class="hero__copy">
       <h1 class="hero__title">ONE BOTTLE</h1>
-      <p class="hero__desc">한 병의 여유, 원보틀</p>
+      <p class="hero__desc" data-text-key="home.hero.desc" data-text-label="홈 가운데 문구">한 병의 여유, 원보틀</p>
     </div>
 
     <!-- 오른쪽 세로 점 (스크롤하면 넘어감) -->
@@ -139,6 +139,9 @@
   <script src="js/app.js"></script>
 
   <script type="module" src="js/auth-nav.js"></script>
+  <script defer src="js/supabase-config.js"></script>
+  <script defer src="js/site-content.js"></script>
+  <script type="module" src="js/admin-edit.js"></script>
 
 </body>
 

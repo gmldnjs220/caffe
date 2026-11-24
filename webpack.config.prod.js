@@ -52,6 +52,8 @@ module.exports = merge(common, {
         { from: 'js/supabase-auth.js', to: 'js/supabase-auth.js' },
         { from: 'js/auth-nav.js', to: 'js/auth-nav.js' },
         { from: 'js/account-view.js', to: 'js/account-view.js' },
+        { from: 'js/site-content.js', to: 'js/site-content.js' },
+        { from: 'js/admin-edit.js', to: 'js/admin-edit.js' },
       ],
     }),
   ],

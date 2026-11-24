@@ -68,7 +68,7 @@
     <div class="page-head">
       <p class="page-head__eyebrow">Order</p>
       <h1 class="page-head__title">주문하기</h1>
-      <p class="page-head__desc">메뉴를 눌러 옵션을 고르고 장바구니에 담아 주세요</p>
+      <p class="page-head__desc" data-text-key="order.head.desc" data-text-label="주문 안내 문구">메뉴를 눌러 옵션을 고르고 장바구니에 담아 주세요</p>
     </div>
 
     <div class="order-layout">
@@ -186,6 +186,8 @@
   <!-- 주문 저장(Supabase). 버전을 올릴 때는 menu.html 의 주소와 같이 바꿔 주세요 -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script defer src="js/supabase-client.js"></script>
+  <script defer src="js/site-content.js"></script>
+  <script type="module" src="js/admin-edit.js"></script>
 
 </body>
 

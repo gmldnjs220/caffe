@@ -4,10 +4,12 @@
   const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  document.querySelectorAll('.notices details').forEach((details) => {
+  // 공지 하나에 애니메이션 연결 (Supabase에서 공지를 새로 그릴 때 js/site-content.js 가 다시 부름)
+  function setup(details) {
     const summary = details.querySelector('summary');
     const body = details.querySelector('.notice-body');
-    if (!summary || !body) return;
+    if (!summary || !body || details.dataset.animReady) return;
+    details.dataset.animReady = '1';
 
     let running = null;
 
@@ -21,6 +23,7 @@
     const empty = { height: '0px', paddingBottom: '0px', opacity: 0, transform: 'translateY(-6px)' };
 
     summary.addEventListener('click', (e) => {
+      if (e.target.closest('[data-admin-ui]')) return; // 관리자 펜 버튼은 펼치기와 상관없음
       if (reduceMotion) return; // 동작 줄이기 설정이면 기본 동작 그대로
       e.preventDefault();
 
@@ -53,5 +56,8 @@
         };
       }
     });
-  });
+  }
+
+  document.querySelectorAll('.notices details').forEach(setup);
+  window.setupNotice = setup;
 })();

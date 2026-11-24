@@ -1,0 +1,348 @@
+/* ==========================================================================
+   관리자 화면 (js/admin-edit.js 가 관리자에게만 불러옴)
+   - html.is-admin : 관리자로 로그인함
+   - html.admin-on : 오른쪽 아래 "✏️ 편집" 스위치가 켜짐 → ✏️ 버튼이 보임
+   ========================================================================== */
+
+/* ---------- ✏️ 버튼 ---------- */
+
+.admin-pen,
+.admin-add,
+.admin-tag {
+  display: none;
+}
+
+html.admin-on .admin-pen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  margin: 0 0 0 8px;
+  padding: 0;
+  border: 1px solid rgba(240, 180, 92, 0.65);
+  border-radius: 50%;
+  background: rgba(20, 17, 14, 0.82);
+  color: var(--paper, #f6f1ea);
+  font: 400 14px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+html.admin-on .admin-pen:hover,
+html.admin-on .admin-pen:focus-visible {
+  background: var(--amber, #f0b45c);
+  transform: scale(1.08);
+  outline: none;
+}
+
+/* 고칠 수 있는 문구에 점선 표시 */
+html.admin-on [data-text-key] {
+  outline: 1px dashed rgba(240, 180, 92, 0.4);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* 메뉴판: 메뉴 버튼 옆에 ✏️ */
+html.admin-on .admin-row {
+  display: flex;
+  align-items: center;
+  break-inside: avoid;
+}
+
+html.admin-on .admin-row > .menu-item {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* 공지: 숨긴 공지와 표시 */
+html.admin-on .admin-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid rgba(240, 180, 92, 0.6);
+  border-radius: 999px;
+  color: var(--amber, #f0b45c);
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+html:not(.admin-on) .notices details.is-unpublished {
+  display: none;
+}
+
+.notices details.is-unpublished summary strong {
+  opacity: 0.55;
+}
+
+html.admin-on .admin-add {
+  display: inline-flex;
+  margin-top: 20px;
+}
+
+/* ---------- 오른쪽 아래 스위치 ---------- */
+
+.admin-bar {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid rgba(240, 180, 92, 0.5);
+  border-radius: 999px;
+  background: rgba(20, 17, 14, 0.9);
+  color: #f6f1ea;
+  font: 500 14px/1 "Pretendard", system-ui, sans-serif;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.admin-bar__badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f0b45c;
+  color: #14110e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-bar__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.admin-bar__switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-bar__track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(246, 241, 234, 0.25);
+  transition: background 0.2s ease;
+}
+
+.admin-bar__track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #f6f1ea;
+  transition: transform 0.2s ease;
+}
+
+.admin-bar__switch input:checked + .admin-bar__track {
+  background: #f0b45c;
+}
+
+.admin-bar__switch input:checked + .admin-bar__track::after {
+  transform: translateX(16px);
+}
+
+.admin-bar__switch input:focus-visible + .admin-bar__track {
+  outline: 2px solid #f0b45c;
+  outline-offset: 2px;
+}
+
+/* ---------- 수정 창 ---------- */
+
+.admin-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid rgba(246, 241, 234, 0.16);
+  border-radius: 14px;
+  background: #1d1915;
+  color: #f6f1ea;
+  font-family: "Pretendard", system-ui, sans-serif;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.admin-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.admin-dialog__form {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.admin-dialog__title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.admin-dialog__text {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(246, 241, 234, 0.8);
+}
+
+.admin-field {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-field__label,
+.admin-group legend {
+  font-size: 13px;
+  color: rgba(246, 241, 234, 0.72);
+}
+
+.admin-field__hint {
+  font-size: 12px;
+  color: rgba(246, 241, 234, 0.5);
+}
+
+.admin-dialog input[type="text"],
+.admin-dialog input[type="number"],
+.admin-dialog input[type="date"],
+.admin-dialog textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(246, 241, 234, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  color-scheme: dark;
+}
+
+.admin-dialog textarea {
+  resize: vertical;
+}
+
+.admin-dialog input:focus,
+.admin-dialog textarea:focus {
+  outline: none;
+  border-color: #f0b45c;
+}
+
+.admin-group {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid rgba(246, 241, 234, 0.14);
+  border-radius: 8px;
+}
+
+.admin-pair {
+  display: grid;
+  grid-template-columns: 1fr 110px auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-pair__unit {
+  font-size: 13px;
+  color: rgba(246, 241, 234, 0.6);
+}
+
+.admin-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.admin-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #f0b45c;
+}
+
+.admin-dialog__msg {
+  min-height: 1em;
+  margin: 0;
+  font-size: 13px;
+  color: #f0b45c;
+}
+
+.admin-dialog__msg:empty {
+  display: none;
+}
+
+.admin-dialog__msg.is-error {
+  color: #ff8a80;
+}
+
+.admin-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-dialog__spacer {
+  flex: 1;
+}
+
+.admin-btn {
+  padding: 9px 16px;
+  border: 1px solid rgba(246, 241, 234, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: #f6f1ea;
+  font: 500 14px/1.2 "Pretendard", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.admin-btn:hover {
+  border-color: #f0b45c;
+  color: #f0b45c;
+}
+
+.admin-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-btn--primary {
+  border-color: #f0b45c;
+  background: #f0b45c;
+  color: #14110e;
+}
+
+.admin-btn--primary:hover {
+  background: #f5c47a;
+  color: #14110e;
+}
+
+.admin-btn--danger {
+  border-color: rgba(255, 138, 128, 0.5);
+  color: #ff8a80;
+}
+
+.admin-btn--danger:hover {
+  border-color: #ff8a80;
+  color: #ff8a80;
+}
+
+/* 홈 사이드바처럼 좁은 곳은 작게 */
+html.admin-on .sidebar .admin-pen {
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  font-size: 11px;
+}

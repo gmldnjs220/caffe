@@ -142,7 +142,23 @@ function showMenu({ groups, categories, source }, filter) {
   validIds = new Set(['all', ...menuCats.map((c) => c.id)]);
   renderMenu();
   applyFilter(filter);
+  // 관리자 화면(js/admin-edit.js)이 메뉴마다 펜 버튼을 다시 붙일 수 있게 알려 줌
+  document.dispatchEvent(new CustomEvent('menu-rendered'));
 }
+
+// 관리자 화면에서 쓰는 연결 고리: 지금 보이는 메뉴 데이터와 다시 불러오기
+window.menuPage = {
+  get categories() { return menuCats; },
+  get source() { return boardEl.dataset.source; },
+  // Supabase에서 최신 메뉴를 다시 읽어 그림 (보고 있던 카테고리는 그대로)
+  async reload() {
+    const fresh = await window.loadMenu();
+    if (!fresh) throw new Error('Supabase에서 메뉴를 다시 읽지 못했어요.');
+    const current = filterEl.querySelector('.chip[aria-pressed="true"]');
+    showMenu(fresh, current ? current.dataset.filter : 'all');
+    return fresh;
+  },
+};
 
 const menuKey = (data) => JSON.stringify([data.groups, data.categories]);
 

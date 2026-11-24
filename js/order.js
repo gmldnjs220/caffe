@@ -423,15 +423,20 @@ function showConfirmError(text) {
   confirmError.hidden = !text;
 }
 
-// 로그인한 회원이면 가입할 때 적은 전화번호를 미리 넣어 둠 (users.phone)
+// 로그인한 회원이면 가입할 때 적은 전화번호를 미리 넣어 둠
+// - 먼저 users.phone (내 정보에서 고친 번호), 못 읽으면 가입할 때 넣은 번호(user_metadata.phone)
+//   (Supabase 설정에 따라 로그인 회원도 users 테이블을 못 읽을 수 있어서 두 번째 방법을 같이 씀)
 async function fillMemberPhone() {
   if (!window.sb || phoneInput.value) return;
   try {
     const { data } = await window.sb.auth.getSession();
-    const userId = data.session && data.session.user.id;
-    if (!userId) return;
-    const { data: me } = await window.sb.from('users').select('phone').eq('id', userId).maybeSingle();
-    if (me && me.phone && !phoneInput.value) phoneInput.value = me.phone;
+    const user = data.session && data.session.user;
+    if (!user) return;
+    let phone = '';
+    const { data: me, error } = await window.sb.from('users').select('phone').eq('id', user.id).maybeSingle();
+    if (!error && me && me.phone) phone = me.phone;
+    if (!phone) phone = String((user.user_metadata && user.user_metadata.phone) || '').replace(/[^0-9]/g, '');
+    if (phone && !phoneInput.value) phoneInput.value = phone;
   } catch (err) { /* 못 불러오면 직접 입력 */ }
 }
 
